@@ -105,14 +105,14 @@ I already notified CAcert support of the last two problems and awaiting a respon
 [CAcert](http://www.cacert.org) class 1 and class 3 root certificates have been integrated in `s2g.sh` (**S**/IME **s**igned **G**nuPG). To verify them print their fingerprint ([credits](https://kdecherf.com/blog/2015/04/10/show-the-certificate-chain-of-a-local-x509-file/)):
 
 ```bash
-awk -F'\n' '
+cat s2g.sh | awk -F'\n' '
         BEGIN {
             ind = 1
             showcert = "openssl x509 -fingerprint -noout -sha256"
         }
 
         /-----BEGIN CERTIFICATE-----/ {
-            printf "Class %d: ", ind
+            printf "Class %d ", ind
         }
 
         {
@@ -126,7 +126,7 @@ awk -F'\n' '
             ind ++
             ind ++
         }
-    ' s2g.sh
+    ' | sed 's/\([^:]*:[^:]*\):/\1 /g' | tr -d ':'
 ```
 
 And, compare them with the hashes published by the CAcert ([HTTP](http://www.cacert.org/index.php?id=3) or [HTTPS](https://www.cacert.org/index.php?id=3)).
