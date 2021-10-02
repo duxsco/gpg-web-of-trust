@@ -32,7 +32,7 @@ To get started you first have to get a valid certificate issued:
 1. First, you have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA3072, the next best option (IMHO).
 
 ```bash
-( umask 0177 && openssl genrsa -aes256 -out smime.key 3072 )
+openssl genpkey -aes256 -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out smime.key
 # We can leave the subject and SAN empty,
 # because they will be ignored by cacert.org.
 openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
