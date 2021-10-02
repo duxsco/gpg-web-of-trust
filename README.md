@@ -77,7 +77,16 @@ openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubke
 `s2g.sh` is still WIP. Currently, I cannot fully test `s2g.sh`:
 
 - I am currently trying to recover my old [CAcert](http://www.cacert.org) account using [Password Recovery with Assurance](https://wiki.cacert.org/FAQ/LostPasswordOrAccount#Password_Recovery_with_Assurance) in order to be able to get a class 3 S/MIME certificate issued again.
-- https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest))
+- https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest)), or:
+
+```bash
+echo | openssl s_client -CAfile /files/cacert.org/cacert.org_class3.crt -showcerts -servername crl.cacert.org -connect crl.cacert.org:443 2>/dev/null | perl -ne '$k++ if /-----BEGIN CERTIFICATE-----/; if(/-----BEGIN CERTIFICATE-----/ .. /-----END CERTIFICATE-----/){print if $k==2}' | openssl x509 -noout -subject -issuer -dates
+subject=O = CAcert Inc., OU = http://www.CAcert.org, CN = CAcert Class 3 Root
+issuer=O = Root CA, OU = http://www.cacert.org, CN = CA Cert Signing Authority, emailAddress = support@cacert.org
+notBefore=May 23 17:48:02 2011 GMT
+notAfter=May 20 17:48:02 2021 GMT
+```
+
 - OCSP responses are signed by an expired certificate:
 
 ```bash
