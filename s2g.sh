@@ -86,6 +86,8 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 
 certValidAndUIDmatch() {
     for UID in "${GPG_UID[@]}"; do
+        local GPG_MAIL
+        local GPG_NAME
         GPG_MAIL="$(awk -F '[<>]' '{print $2}' <<<"${UID}")"
         GPG_NAME="$(awk 'NF{--NF};1' <<<"${UID}")"
 
@@ -115,9 +117,11 @@ else
     elif ! openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url <(echo "${CRT}" | openssl x509 -noout -ocsp_uri) >/dev/null 2>&1 && \
          ! openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL}") <(echo "${CRT}"); then
         echo -e "\nCRL and OCSP check failed. Aborting...\n"
-    elif ! certValidAndUIDmatch; then
+    elif ! certValidAndUIDmatch "$1"; then
         echo -e "\nNo valid S/MIME certificate OR no match between GnuPG UIDs and certificate CommonName/mail. Aborting...\n"
     else
+        CRT_SUBJECT="$(echo "${CRT}" | openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname)"
+
         cat <<EOF
 
 Checks passed 🎉
@@ -126,8 +130,8 @@ GnuPG UIDs:
 $(printf '  - %s\n' "${GPG_UID[@]}")
 
 S/MIME certificate subject:
-  - CommonName: $(echo "${CRT}" | openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname | grep -Po 'commonName=\K.*')
-  - E-MAIL:     $(echo "${CRT}" | openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname | grep -Po 'emailAddress=\K.*')
+  - CommonName: $(grep -Po 'commonName=\K.*' <<<"${CRT_SUBJECT}")
+  - E-MAIL:     $(grep -Po 'emailAddress=\K.*' <<<"${CRT_SUBJECT}")
 
 Feel free to import with:
   gpg --import "$1"
