@@ -68,7 +68,7 @@ gpg --export-options export-minimal --export --armor "YOUR KEY ID" > pubkey.asc
 openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubkey.asc -out pubkey.asc.msg
 ```
 
-`pubkey.asc.msg` is the file you can publish.
+`pubkey.asc.msg` is the S/MIME signed GnuPG public key file you can publish.
 
 ## Verification of S/MIME signature and GnuPG public key import
 
@@ -77,7 +77,7 @@ openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubke
 `s2g.sh` is still WIP. Currently, I cannot fully test `s2g.sh`:
 
 - I am currently trying to recover my old [CAcert](http://www.cacert.org) account using [Password Recovery with Assurance](https://wiki.cacert.org/FAQ/LostPasswordOrAccount#Password_Recovery_with_Assurance) in order to be able to get a class 3 S/MIME certificate issued again.
-- https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest)
+- https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest))
 - OCSP responses are signed by an expired certificate:
 
 ```bash
@@ -98,7 +98,7 @@ notBefore=Aug 24 20:34:34 2021 GMT
 notAfter=Aug 24 20:34:34 2023 GMT
 ```
 
-I already notified support of the problems with CRL and OCSP and awaiting a response.
+I already notified CAcert support of the last two problems and awaiting a response.
 
 ### `s2g.sh` - S/MIME signed GnuPG
 
@@ -134,9 +134,9 @@ And, compare them with the hashes published by the CAcert ([HTTP](http://www.cac
 To verify and import your communication partner's GnuPG public key do:
 
 ```bash
-# Just verify
+# Verify
 bash s2g.sh pubkey.asc.msg
 
-# If verification success, you can import the traditional way
+# If verification succeded...
 gpg --import pubkey.asc.msg
 ```
