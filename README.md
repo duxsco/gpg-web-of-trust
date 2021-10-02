@@ -147,6 +147,12 @@ cat s2g.sh | awk -F'\n' '
     ' | sed 's/\([^:]*:[^:]*\):/\1 /g' | tr -d ':'
 ```
 
+... outputs:
+
+> Class 1 SHA256 Fingerprint=07ED BD82 4A49 88CF EF42 15DA 20D4 8C2B 41D7 1529 D7C9 00F5 7092 6F27 7CC2 30C5
+>
+> Class 3 SHA256 Fingerprint=1BC5 A61A 2C0C 0132 C52B 284F 3DA0 D8DA CF71 7A0F 6C1D DF81 D80B 36EE E444 2869
+
 And, compare them with the hashes published by the CAcert ([HTTP](http://www.cacert.org/index.php?id=3) or [HTTPS](https://www.cacert.org/index.php?id=3)).
 
 To verify and import your communication partner's GnuPG public key do:
