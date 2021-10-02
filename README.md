@@ -81,31 +81,40 @@ openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubke
 
 ```bash
 echo | openssl s_client -CAfile /files/cacert.org/cacert.org_class3.crt -showcerts -servername crl.cacert.org -connect crl.cacert.org:443 2>/dev/null | perl -ne '$k++ if /-----BEGIN CERTIFICATE-----/; if(/-----BEGIN CERTIFICATE-----/ .. /-----END CERTIFICATE-----/){print if $k==2}' | openssl x509 -noout -subject -issuer -dates
-subject=O = CAcert Inc., OU = http://www.CAcert.org, CN = CAcert Class 3 Root
-issuer=O = Root CA, OU = http://www.cacert.org, CN = CA Cert Signing Authority, emailAddress = support@cacert.org
-notBefore=May 23 17:48:02 2011 GMT
-notAfter=May 20 17:48:02 2021 GMT
 ```
+
+... outputs:
+
+> subject=O = CAcert Inc., OU = http://www.CAcert.org, CN = CAcert Class 3 Root
+> issuer=O = Root CA, OU = http://www.cacert.org, CN = CA Cert Signing Authority, emailAddress = support@cacert.org
+> notBefore=May 23 17:48:02 2011 GMT
+> notAfter=May 20 17:48:02 2021 GMT
 
 - OCSP responses are signed by an expired certificate:
 
 ```bash
 openssl ocsp -CAfile cacert.org_class1.crt -issuer cacert.org_class1.crt -cert cacert.org_class1.crt -url http://ocsp.cacert.org -text | openssl x509 -dates -noout
-Response Verify Failure
-139665196160384:error:27069065:OCSP routines:OCSP_basic_verify:certificate verify error:crypto/ocsp/ocsp_vfy.c:92:Verify error:certificate has expired
-139665196160384:error:27069065:OCSP routines:OCSP_basic_verify:certificate verify error:crypto/ocsp/ocsp_vfy.c:92:Verify error:certificate has expired
-notBefore=Aug 25 14:12:48 2019 GMT
-notAfter=Aug 24 14:12:48 2021 GMT
 ```
+
+... outputs:
+
+> Response Verify Failure
+> 139665196160384:error:27069065:OCSP routines:OCSP_basic_verify:certificate verify error:crypto/ocsp/ocsp_vfy.c:92:Verify error:certificate has expired
+> 139665196160384:error:27069065:OCSP routines:OCSP_basic_verify:certificate verify error:crypto/ocsp/ocsp_vfy.c:92:Verify error:certificate has expired
+> notBefore=Aug 25 14:12:48 2019 GMT
+> notAfter=Aug 24 14:12:48 2021 GMT
 
 The expected behaviour for class 1 certificates is like that shown for class 3:
 
 ```bash
 echo | openssl s_client -CAfile cacert.org_class3.crt -servername www.cacert.org -connect www.cacert.org:443 2>/dev/null | openssl x509 | openssl ocsp -CAfile cacert.org_class1.crt -issuer cacert.org_class3.crt -cert - -url http://ocsp.cacert.org -text | openssl x509 -dates -noout
-Response verify OK
-notBefore=Aug 24 20:34:34 2021 GMT
-notAfter=Aug 24 20:34:34 2023 GMT
 ```
+
+... outputs:
+
+> Response verify OK
+> notBefore=Aug 24 20:34:34 2021 GMT
+> notAfter=Aug 24 20:34:34 2023 GMT
 
 I already notified CAcert support of the last two problems and awaiting a response.
 
