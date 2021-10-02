@@ -108,15 +108,17 @@ I already notified support of the problems with CRL and OCSP and awaiting a resp
 awk -F'\n' '
         BEGIN {
             ind = 1
-            showcert = "openssl x509 -fingerprint -noout -sha256 2>/dev/null"
+            showcert = "openssl x509 -fingerprint -noout -sha256"
         }
 
         /-----BEGIN CERTIFICATE-----/ {
-            printf "Class%2d: ", ind
+            printf "Class %d: ", ind
         }
 
         {
-            printf $0"\n" | showcert
+            if (ind == 1 || ind == 3) {
+                printf $0"\n" | showcert
+            }
         }
 
         /-----END CERTIFICATE-----/ {
