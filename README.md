@@ -8,7 +8,7 @@ The following outlines a "new" way to realise Web of Trust. The limitations of t
 
     1. sure that your S/MIME certificate is not expired.
     2. an OCSP query and a CRL fetch. It is satified as long as one of them attests that the certificate has not been revoked.
-    3. a comparison of e-mail address and full name within GnuPG public key and S/MIME certificate subject. So, make sure that at least one of your GnuPG UIDs is of form "${commonName} <${emailAddress}>".
+    3. a comparison of e-mail address and full name within GnuPG public key and S/MIME certificate subject. So, make sure that at least one of your GnuPG UIDs is of form `${commonName} <${emailAddress}>`.
     4. sure that your S/MIME certificate is a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org).
 
 If all of above checks passed, you get an output such as:
