@@ -29,10 +29,10 @@ But, I still had the wish to provide some verification mechanism while publishin
 
 To get started you first have to get a valid certificate issued:
 
-1. First, you have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA3072, the next best option (IMHO).
+1. First, you have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org). Although the key strength is not that much stronger than that provided by RSA-3072 and computing is significantly slower in comparison, each of your communication partner is usually doing signature verification once before GnuPG public key import. Unless you update your GnuPG public key and distribute it again though. Therefore, increased compute time shouldn't matter for the one-time verification & import.
 
 ```bash
-openssl genpkey -aes256 -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out smime.key
+openssl genpkey -aes256 -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out smime.key
 # We can leave the subject and SAN empty,
 # because they will be ignored by cacert.org.
 openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
