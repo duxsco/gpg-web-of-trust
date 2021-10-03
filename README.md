@@ -1,6 +1,6 @@
 # (WIP) GnuPG Web of Trust (WIP)
 
-The following outlines a "new" way to realise Web of Trust. The limitations of traditional Web of Trust is described under ["Background"](#background). This new approach consist of:
+The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background"](#background). This new approach consist of:
 
 1. Getting a class 3 S/MIME certificate from [CAcert](http://www.cacert.org)
 2. Signing your GnuPG public key with said S/MIME keypair and publish it over the channels of your choice
