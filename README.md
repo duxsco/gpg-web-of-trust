@@ -85,7 +85,7 @@ openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubke
 - https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest)), or:
 
 ```bash
-echo | openssl s_client -CAfile /files/cacert.org/cacert.org_class3.crt -showcerts -servername crl.cacert.org -connect crl.cacert.org:443 2>/dev/null | perl -ne '$k++ if /-----BEGIN CERTIFICATE-----/; if(/-----BEGIN CERTIFICATE-----/ .. /-----END CERTIFICATE-----/){print if $k==2}' | openssl x509 -noout -subject -issuer -dates
+echo | openssl s_client -CAfile cacert.org_class3.crt -showcerts -servername crl.cacert.org -connect crl.cacert.org:443 2>/dev/null | perl -ne '$k++ if /-----BEGIN CERTIFICATE-----/; if(/-----BEGIN CERTIFICATE-----/ .. /-----END CERTIFICATE-----/){print if $k==2}' | openssl x509 -noout -subject -issuer -dates
 ```
 
 ... outputs:
@@ -172,7 +172,7 @@ To verify and import your communication partner's GnuPG public key do:
 # Verify
 bash s2g.sh pubkey.asc.msg
 
-# If verification succeded...
+# If verification succeeded...
 gpg --import pubkey.asc.msg
 ```
 
