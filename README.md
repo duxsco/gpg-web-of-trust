@@ -1,26 +1,5 @@
 # (WIP) GnuPG Web of Trust (WIP)
 
-## Background
-
-GnuPG's Web of Trust approach is long dead due to:
-
-- [Certificate spamming attacks](https://gist.github.com/rjhansen/67ab921ffb4084c865b3618d6955275f)
-- disinterest in campaigns such as:
-  - [CAcert](http://www.cacert.org): [Signing key](http://www.cacert.org/index.php?id=3) using old `dsa1024` and `elg2048`
-  - [DFN](https://web.archive.org/web/20070613205827/https://www.pki.dfn.de/content/index.php?id=pgp): Offline sometime after 2007 and never really for public use (AFAIK)
-  - [Heise crypto compaign](https://www.heise.de/security/dienste/Krypto-Kampagne-2111.html): Still publishing to dead SKS keyservers ([see last bullet point](https://www.heise.de/security/dienste/Wie-kann-ich-mitmachen-474837.html)) and [no consideration for ECC keys](https://www.heise.de/security/dienste/Zertifizierungsantrag-474471.html)
-- and finally privacy concerns due to [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation):
-
-![sks keyserver notification](assets/sks_keyserver_notification.png)
-
-## Direct trust approach
-
-I created the repo [gpg-config-and-scripts](https://github.com/duxco/gpg-config-and-scripts) with configuration files that enforce setting key validity directly without any dependence on Web of Trust. Furthermore, scripts are provided to:
-
-  - check for public key delivery options (e.g. DANE, WKD) and pull keys from a suitable source ([pull.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/pull.sh))
-  - display man pages while highlighting defaults (in yellow) and options that have been set in the configuration file (in red) ([man.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/man.sh))
-  - manage the public key store ([pubkey.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/pubkey.sh))
-
 ## Signing GnuPG public keys with S/MIME
 
 But, I still had the wish to provide some verification mechanism while publishing my GnuPG public key. Thus, I decided to build upon class 3 S/MIME certificates issued by [CAcert](http://www.cacert.org) to sign my GnuPG public keys.
@@ -170,3 +149,24 @@ bash s2g.sh pubkey.asc.msg
 # If verification succeded...
 gpg --import pubkey.asc.msg
 ```
+
+## Background
+
+GnuPG's Web of Trust approach is long dead due to:
+
+- [Certificate spamming attacks](https://gist.github.com/rjhansen/67ab921ffb4084c865b3618d6955275f)
+- disinterest in campaigns such as:
+  - [CAcert](http://www.cacert.org): [Signing key](http://www.cacert.org/index.php?id=3) using old `dsa1024` and `elg2048`
+  - [DFN](https://web.archive.org/web/20070613205827/https://www.pki.dfn.de/content/index.php?id=pgp): Offline sometime after 2007 and never really for public use (AFAIK)
+  - [Heise crypto compaign](https://www.heise.de/security/dienste/Krypto-Kampagne-2111.html): Still publishing to dead SKS keyservers ([see last bullet point](https://www.heise.de/security/dienste/Wie-kann-ich-mitmachen-474837.html)) and [no consideration for ECC keys](https://www.heise.de/security/dienste/Zertifizierungsantrag-474471.html)
+- and finally privacy concerns due to [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation):
+
+![sks keyserver notification](assets/sks_keyserver_notification.png)
+
+## Direct trust approach
+
+I created the repo [gpg-config-and-scripts](https://github.com/duxco/gpg-config-and-scripts) with configuration files that enforce setting key validity directly without any dependence on Web of Trust. Furthermore, scripts are provided to:
+
+  - check for public key delivery options (e.g. DANE, WKD) and pull keys from a suitable source ([pull.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/pull.sh))
+  - display man pages while highlighting defaults (in yellow) and options that have been set in the configuration file (in red) ([man.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/man.sh))
+  - manage the public key store ([pubkey.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/pubkey.sh))
