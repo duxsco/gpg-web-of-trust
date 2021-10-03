@@ -131,7 +131,7 @@ $(printf '  - %s\n' "${GPG_UID[@]}")
 
 S/MIME certificate subject:
   - CommonName: $(grep -Po 'commonName=\K.*' <<<"${CRT_SUBJECT}")
-  - E-MAIL:     $(grep -Po 'emailAddress=\K.*' <<<"${CRT_SUBJECT}")
+  - E-Mail:     $(grep -Po 'emailAddress=\K.*' <<<"${CRT_SUBJECT}")
 
 Feel free to import with:
   gpg --import "$1"

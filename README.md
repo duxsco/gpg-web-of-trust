@@ -25,7 +25,7 @@ GnuPG UIDs:
 
 S/MIME certificate subject:
   - CommonName: David Sardari
-  - E-MAIL:     david.sardari@example.de
+  - E-Mail:     david.sardari@example.de
 
 Feel free to import with:
   gpg --import pubkey.asc.msg
