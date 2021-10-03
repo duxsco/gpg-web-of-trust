@@ -1,12 +1,40 @@
 # (WIP) GnuPG Web of Trust (WIP)
 
+The following outlines a "new" way to realise Web of Trust. The limitations of traditional Web of Trust is described under ["Background"](#background). This new approach consist of:
+
+1. Getting a class 3 S/MIME certificate from [CAcert](http://www.cacert.org)
+2. Signing your GnuPG public key with said S/MIME keypair and publish it over the channels of your choice
+3. Signature verification by your communication partner with help of `s2g.sh` (**S**/MIME **s**igned **G**nuPG) provided in this repository. `s2g.sh` script makes:
+
+    1. sure that your S/MIME certificate is not expired.
+    2. an OCSP query and a CRL fetch. It is satified as long as one of them attests that the certificate has not been revoked.
+    3. a comparison of e-mail address and full name within GnuPG public key and S/MIME certificate subject. So, make sure that your GnuPG uid is of form `${CN} <${emailAddress}>`.
+    4. sure that your S/MIME certificate is a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org).
+
+If all of above checks passed, you get an output such as:
+
+```
+$ bash s2g.sh pubkey.asc.msg
+
+Checks passed 🎉
+
+GnuPG UIDs:
+  - David Sardari <david.sardari@example.org>
+  - David Sardari <david.sardari@example.de>
+  - David Sardari <david.sardari@example.eu>
+
+S/MIME certificate subject:
+  - CommonName: David Sardari
+  - E-MAIL:     david.sardari@example.de
+
+Feel free to import with:
+  gpg --import pubkey.asc.msg
+
+```
+
 ## Signing GnuPG public keys with S/MIME
 
-But, I still had the wish to provide some verification mechanism while publishing my GnuPG public key. Thus, I decided to build upon class 3 S/MIME certificates issued by [CAcert](http://www.cacert.org) to sign my GnuPG public keys.
-
-### S/MIME keypair creation
-
-To get started you first have to get a valid certificate issued:
+First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
 1. First, you have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org). Although the key strength is not that much stronger than that provided by RSA-3072 and computing is significantly slower in comparison, each of your communication partner is usually doing signature verification once before GnuPG public key import. Unless you update your GnuPG public key and distribute it again though. Therefore, increased compute time shouldn't matter for the one-time verification & import.
 
@@ -31,8 +59,6 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 openssl pkcs12 -export -in smime.crt -inkey smime.key -out smime.pkcs12
 ```
 
-### GnuPG keypair signing
-
 I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal export of my public key excluding all signatures except the most recent self-signature on each user ID.
 
 1. Export your GnuPG public key:
@@ -51,7 +77,7 @@ openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubke
 
 ## Verification of S/MIME signature and GnuPG public key import
 
-### ⚠ Disclaimer ⚠
+###  ⚠ Disclaimer ⚠
 
 `s2g.sh` is still WIP. Currently, I cannot fully test `s2g.sh`:
 
