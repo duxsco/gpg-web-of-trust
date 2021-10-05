@@ -182,11 +182,3 @@ GnuPG's Web of Trust approach is long dead due to:
 - and finally privacy concerns due to [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation):
 
 ![sks keyserver notification](assets/sks_keyserver_notification.png)
-
-## Direct trust approach
-
-I created the repo [gpg-config-and-scripts](https://github.com/duxco/gpg-config-and-scripts) with configuration files that enforce setting key validity directly without any dependence on Web of Trust. Furthermore, scripts are provided to:
-
-  - check for public key delivery options (e.g. DANE, WKD) and pull keys from a suitable source ([pull.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/pull.sh))
-  - display man pages while highlighting defaults (in yellow) and options that have been set in the configuration file (in red) ([man.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/man.sh))
-  - manage the public key store ([pubkey.sh](https://github.com/duxco/gpg-config-and-scripts/blob/main/bin/pubkey.sh))
