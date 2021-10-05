@@ -65,7 +65,9 @@ $ bash s2g.sh pubkey.asc.pkcs7
 
 Checks passed 🎉 S/MIME certificate:
   - Not expired ✔
-  - Not revoked (CRL/OCSP) ✔
+  - Not revoked:
+    - CRL ✔
+    - OCSP ✔
   - Class 3 (person identity verified) ✔
   - Signed by CAcert ✔
   - Subject and GnuPG UID match ✔

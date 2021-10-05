@@ -96,10 +96,16 @@ else
     CIPHERS="ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256"
     CRL="$(echo "$CLASS1_ROOT_CRT" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
 
+    openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL}") <<<"${CRT}" && \
+      CRL="✔" || \
+      CRL="✘"
+    openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"$CRT")" >/dev/null 2>&1 && \
+      OCSP="✔" || \
+      OCSP="✘"
+
     if ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
         echo -e "\nCertificate expired. Aborting...\n"
-    elif ! openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"$CRT")" >/dev/null 2>&1 && \
-         ! openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL}") <<<"${CRT}"; then
+    elif [ "${CRL}" == "✘" ] && [ "${OCSP}" == "✘ "]; then
         echo -e "\nCRL and OCSP check failed. Aborting...\n"
     else
         CRT_SUBJ="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
@@ -138,7 +144,9 @@ else
 
 Checks passed 🎉 S/MIME certificate:
   - Not expired ✔
-  - Not revoked ✔
+  - Not revoked:
+    - CRL ${CRL}
+    - OCSP ${OCSP}
   - Class 3 (person identity verified) ✔
   - Signed by CAcert ✔
   - Subject and GnuPG UID match ✔
