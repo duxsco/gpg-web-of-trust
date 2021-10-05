@@ -103,10 +103,10 @@ else
       OCSP="✔" || \
       OCSP="✘"
 
-    if ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
-        echo -e "\nCertificate expired. Aborting...\n"
-    elif [ "${CRL}" == "✘" ] && [ "${OCSP}" == "✘" ]; then
+    if [ "${CRL}" == "✘" ] && [ "${OCSP}" == "✘" ]; then
         echo -e "\nCRL and OCSP check failed. Aborting...\n"
+    elif ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
+        echo -e "\nCertificate expired. Aborting...\n"
     else
         CRT_SUBJ="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
         CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"$CRT_SUBJ")"
