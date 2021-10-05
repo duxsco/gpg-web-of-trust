@@ -2,24 +2,16 @@
 
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background"](#background). This new approach consist of:
 
-1. Getting a class 3 S/MIME certificate from [CAcert](http://www.cacert.org)
-2. Creation of a detached signature for your GnuPG public key with said S/MIME keypair
-3. Publication of the detached signature over the channels of your choice
-3. Signature verification by your communication partner with help of `s2g.sh` (**S**/MIME **s**igned **G**nuPG) provided in this repository. `s2g.sh` script makes:
-
-    1. sure that your S/MIME certificate is not expired.
-    2. an OCSP query and a CRL fetch. It is satified as long as one of them attests that the certificate has not been revoked.
-    3. a comparison of e-mail address and full name within GnuPG public key and S/MIME certificate subject. So, make sure that at least one of your GnuPG UIDs is of form `${commonName} <${emailAddress}>`.
-    4. sure that your S/MIME certificate is a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org).
-
-If all of above checks passed, you get an output such as:
+1. Creation of a class 3 S/MIME key pair signed by [CAcert](http://www.cacert.org)
+2. Creation and publication of a detached S/MIME signature for your GnuPG public key
+3. Retrieval and signature verification by your communication partner:
 
 ```
 $ bash s2g.sh pubkey.asc.pkcs7
 
 Checks passed 🎉 S/MIME certificate:
   - Not expired ✔
-  - Not revoked ✔
+  - Not revoked (CRL/OCSP) ✔
   - Class 3 (person identity verified) ✔
   - Signed by CAcert ✔
   - Subject and GnuPG UID match ✔
