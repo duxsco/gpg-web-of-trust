@@ -64,13 +64,13 @@ I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal e
 gpg --export-options export-minimal --export --armor "YOUR KEY ID" > pubkey.asc
 ```
 
-2. Sign your GnuPG public key:
+2. Create a S/MIME detached signature for your GnuPG public key:
 
 ```bash
 openssl smime -binary -md sha256 -outform pem -sign -signer smime.crt -inkey smime.key -in pubkey.asc -out pubkey.asc.pkcs7
 ```
 
-`pubkey.asc.pkcs7` is the S/MIME based detached signature of the  GnuPG public key file you can publish.
+3. Publish `pubkey.asc.pkcs7` over the channels of your choice
 
 ## Verification of S/MIME signature and GnuPG public key import
 
