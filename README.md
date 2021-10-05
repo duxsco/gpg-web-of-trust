@@ -35,7 +35,7 @@ Feel free to import with:
 
 ```
 
-## Signing GnuPG public keys with S/MIME
+## Creation of class 3 S/MIME key pair
 
 First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
@@ -56,6 +56,8 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 
 ![certificate download](assets/certificate_download.png)
 
+## GnuPG public key signing with S/MIME
+
 I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal export of my public key excluding all signatures except the most recent self-signature on each user ID.
 
 1. Export your GnuPG public key:
@@ -72,7 +74,7 @@ openssl smime -binary -md sha256 -outform pem -sign -signer smime.crt -inkey smi
 
 3. Publish `pubkey.asc.pkcs7` over the channels of your choice
 
-## Verification of S/MIME signature and GnuPG public key import
+## S/MIME signature verification by peer
 
 ###  ⚠ Disclaimer ⚠
 
