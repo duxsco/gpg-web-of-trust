@@ -84,60 +84,82 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 -----END CERTIFICATE-----
 "
 
-certValidAndUIDmatch() {
-    for UID in "${GPG_UID[@]}"; do
-        local GPG_MAIL
-        local GPG_NAME
-        GPG_MAIL="$(awk -F '[<>]' '{print $2}' <<<"${UID}")"
-        GPG_NAME="$(awk 'NF{--NF};1' <<<"${UID}")"
-
-        if openssl smime -CAfile "${CLASS3_ROOT_CRT}" -verify -verify_email "${GPG_MAIL}" -verify_hostname "${GPG_NAME}" -in "$1" >/dev/null 2>&1; then
-            return 0
-        fi
-    done
-
-    return 1
-}
-
 if [ ! -f "$1" ]; then
     echo -e "\nNo file provided, e.g. \"bash ${0##*/} pubkey.asc.msg\". Aborting...\n"
 else
-    CRT="$(openssl smime -pk7out -in "$1" | openssl pkcs7 -print_certs)"
-    CRL_URI="$(echo "${CRT}" | openssl x509 -noout -ext crlDistributionPoints | grep -Po 'URI:\K.*')"
+    CRT="$(openssl pkcs7 -print_certs -in "$1" | openssl x509)"
+    CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CRT}" | grep -Po 'URI:\K.*')"
     # suite list created with:
     # openssl ciphers -v -s | grep AEAD | grep ECDHE | awk '{print $1}' | paste -d: -s -
     #
     # in case of tlsv1.3, currently unsupported by cacert.org, we take everything
     CIPHERS="ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256"
-    CRL="$(curl -fsS --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
-    IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --with-colons --show-keys "$1" | grep "^uid" | cut -d: -f10)
+    CRL="$(echo "$CLASS1_ROOT_CRT" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
 
-    if ! openssl x509 -noout -checkend 0 -in <(echo "${CRT}") >/dev/null 2>&1; then
+    if ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
         echo -e "\nCertificate expired. Aborting...\n"
-    elif ! openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url <(echo "${CRT}" | openssl x509 -noout -ocsp_uri) >/dev/null 2>&1 && \
-         ! openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL}") <(echo "${CRT}"); then
+    elif ! openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"$CRT")" >/dev/null 2>&1 && \
+         ! openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL}") <<<"${CRT}"; then
         echo -e "\nCRL and OCSP check failed. Aborting...\n"
-    elif ! certValidAndUIDmatch "$1"; then
-        echo -e "\nNo valid S/MIME certificate OR no match between GnuPG UIDs and certificate CommonName/mail. Aborting...\n"
     else
-        CRT_SUBJECT="$(echo "${CRT}" | openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname)"
+        CRT_SUBJ="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
+        CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"$CRT_SUBJ")"
+        CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"$CRT_SUBJ")"
+        TMPDIR="$(mktemp -d)"
 
-        cat <<EOF
+        declare -a SUCCESS
 
-Checks passed 🎉
+        if grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --version); then
+            PKA="pka"
+        else
+            PKA=""
+        fi
+
+        for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
+            gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
+            gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --export-option minimal --export --armor > "${TMPDIR}/${MECHANISM}.asc" && \
+            ( IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --with-colons --list-keys | grep "^uid" | cut -d: -f10) ) && \
+            [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
+            openssl smime -CAfile "${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMPDIR}/${MECHANISM}.asc" -inform pem >/dev/null 2>&1 && \
+            SUCCESS+=("${MECHANISM}")
+        done
+    fi
+fi
+
+if [ -z ${SUCCESS+x} ] || [[ ${#SUCCESS[@]} -eq 0 ]]; then
+    echo -e "\nNot able to retrieve a valid GnuPG public key! Aborting...\n"
+else
+    GPG_PUBKEY="$(mktemp)"
+    mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
+    cat "${TMPDIR}/${SUCCESS[0]}.asc" > "${GPG_PUBKEY}.asc"
+    IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
+
+    cat <<EOF
+
+Checks passed 🎉 S/MIME certificate:
+  - Not expired ✔
+  - Not revoked ✔
+  - Class 3 (person identity verified) ✔
+  - Signed by CAcert ✔
+  - Subject and GnuPG UID match ✔
 
 GnuPG UIDs:
 $(printf '  - %s\n' "${GPG_UID[@]}")
 
 S/MIME certificate subject:
-  - CommonName: $(grep -Po 'commonName=\K.*' <<<"${CRT_SUBJECT}")
-  - E-Mail:     $(grep -Po 'emailAddress=\K.*' <<<"${CRT_SUBJECT}")
+  - CommonName: ${CRT_NAME}
+  - E-Mail:     ${CRT_MAIL}
+
+GnuPG public key retrieval succeeded over these channels:
+$(printf '  - %s\n' "${SUCCESS[@]}")
 
 Feel free to import with:
-  gpg --import "$1"
+  gpg --import "${GPG_PUBKEY}.asc"
 
 EOF
     fi
+
+    exit 0
 fi
 
 exit 1

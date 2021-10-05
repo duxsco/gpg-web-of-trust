@@ -3,7 +3,8 @@
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background"](#background). This new approach consist of:
 
 1. Getting a class 3 S/MIME certificate from [CAcert](http://www.cacert.org)
-2. Signing your GnuPG public key with said S/MIME keypair and publish it over the channels of your choice
+2. Creation of a detached signature for your GnuPG public key with said S/MIME keypair
+3. Publication of the detached signature over the channels of your choice
 3. Signature verification by your communication partner with help of `s2g.sh` (**S**/MIME **s**igned **G**nuPG) provided in this repository. `s2g.sh` script makes:
 
     1. sure that your S/MIME certificate is not expired.
@@ -36,7 +37,7 @@ Feel free to import with:
 
 First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
-1. First, you have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org). Although the key strength is not that much stronger than that provided by RSA-3072 and computing is significantly slower in comparison, each of your communication partner is usually doing signature verification once before GnuPG public key import. Unless you update your GnuPG public key and distribute it again though. Therefore, increased compute time shouldn't matter for the one-time verification & import.
+1. You have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org). Although the key strength is not that much stronger than that provided by RSA-3072 and computing is significantly slower in comparison, each of your communication partner is usually doing signature verification once before GnuPG public key import. Unless you update your GnuPG public key and distribute it again though. Therefore, increased compute time shouldn't matter for the one-time verification & import.
 
 ```bash
 openssl genpkey -aes256 -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out smime.key
@@ -53,12 +54,6 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 
 ![certificate download](assets/certificate_download.png)
 
-4. Create a PKCS 12 file:
-
-```bash
-openssl pkcs12 -export -in smime.crt -inkey smime.key -out smime.pkcs12
-```
-
 I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal export of my public key excluding all signatures except the most recent self-signature on each user ID.
 
 1. Export your GnuPG public key:
@@ -70,10 +65,10 @@ gpg --export-options export-minimal --export --armor "YOUR KEY ID" > pubkey.asc
 2. Sign your GnuPG public key:
 
 ```bash
-openssl pkcs12 -in smime.pkcs12 -nodes | openssl smime -sign -signer - -in pubkey.asc -out pubkey.asc.msg
-```
+openssl smime -binary -md sha256 -outform pem -sign -signer smime.crt -inkey smime.key -in pubkey.asc -out pubkey.asc.pkcs7
+``
 
-`pubkey.asc.msg` is the S/MIME signed GnuPG public key file you can publish.
+`pubkey.asc.pkcs7` is the S/MIME based detached signature of the  GnuPG public key file you can publish.
 
 ## Verification of S/MIME signature and GnuPG public key import
 
