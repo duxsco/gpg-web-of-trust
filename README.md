@@ -68,7 +68,7 @@ gpg --export-options export-minimal --export --armor "YOUR KEY ID" > pubkey.asc
 
 ```bash
 openssl smime -binary -md sha256 -outform pem -sign -signer smime.crt -inkey smime.key -in pubkey.asc -out pubkey.asc.pkcs7
-``
+```
 
 `pubkey.asc.pkcs7` is the S/MIME based detached signature of the  GnuPG public key file you can publish.
 
