@@ -147,7 +147,7 @@ S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
   - E-Mail:     ${CRT_MAIL}
 
-GnuPG UIDs:
+GnuPG UID(s):
 $(printf '  - %s\n' "${GPG_UID[@]}")
 
 GnuPG public key retrieval succeeded over these channels:

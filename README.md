@@ -20,7 +20,7 @@ S/MIME certificate subject:
   - CommonName: David Sardari
   - E-Mail:     david.sardari@example.de
 
-GnuPG UIDs:
+GnuPG UID(s):
   - David Sardari <david.sardari@example.org>
   - David Sardari <david.sardari@example.de>
   - David Sardari <david.sardari@example.eu>
