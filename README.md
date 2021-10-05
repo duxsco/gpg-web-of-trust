@@ -170,7 +170,7 @@ And, compare them with the hashes published by the CAcert ([HTTP](http://www.cac
 To verify and import your communication partner's GnuPG public key do:
 
 ```bash
-# Verify and follow the output as you see fit
+# Follow the output as you see fit
 bash s2g.sh pubkey.asc.pkcs7
 ```
 
