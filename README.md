@@ -15,21 +15,31 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 If all of above checks passed, you get an output such as:
 
 ```
-$ bash s2g.sh pubkey.asc.msg
+$ bash s2g.sh pubkey.asc.pkcs7
 
-Checks passed 🎉
+Checks passed 🎉 S/MIME certificate:
+  - Not expired ✔
+  - Not revoked ✔
+  - Class 3 (person identity verified) ✔
+  - Signed by CAcert ✔
+  - Subject and GnuPG UID match ✔
+
+S/MIME certificate subject:
+  - CommonName: David Sardari
+  - E-Mail:     david.sardari@example.de
 
 GnuPG UIDs:
   - David Sardari <david.sardari@example.org>
   - David Sardari <david.sardari@example.de>
   - David Sardari <david.sardari@example.eu>
 
-S/MIME certificate subject:
-  - CommonName: David Sardari
-  - E-Mail:     david.sardari@example.de
+GnuPG public key retrieval succeeded over these channels:
+  - DANE
+  - WKD
+  - hkps://keys.openpgp.org
 
 Feel free to import with:
-  gpg --import pubkey.asc.msg
+  gpg --import "/tmp/tmp.rkEDaMITRr.asc"
 
 ```
 

@@ -143,12 +143,12 @@ Checks passed 🎉 S/MIME certificate:
   - Signed by CAcert ✔
   - Subject and GnuPG UID match ✔
 
-GnuPG UIDs:
-$(printf '  - %s\n' "${GPG_UID[@]}")
-
 S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
   - E-Mail:     ${CRT_MAIL}
+
+GnuPG UIDs:
+$(printf '  - %s\n' "${GPG_UID[@]}")
 
 GnuPG public key retrieval succeeded over these channels:
 $(printf '  - %s\n' "${SUCCESS[@]}")
