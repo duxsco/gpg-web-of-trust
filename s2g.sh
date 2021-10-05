@@ -85,7 +85,7 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 "
 
 if [ ! -f "$1" ]; then
-    echo -e "\nNo file provided, e.g. \"bash ${0##*/} pubkey.asc.msg\". Aborting...\n"
+    echo -e "\nNo file provided, e.g. \"bash ${0##*/} pubkey.asc.pkcs7\". Aborting...\n"
 else
     CRT="$(openssl pkcs7 -print_certs -in "$1" | openssl x509)"
     CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CRT}" | grep -Po 'URI:\K.*')"
