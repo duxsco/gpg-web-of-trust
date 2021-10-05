@@ -99,7 +99,7 @@ else
     openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL}") <<<"${CRT}" && \
       CRL="✔" || \
       CRL="✘"
-    openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"$CRT")" >/dev/null 2>&1 && \
+    openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"$CRT" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
       OCSP="✔" || \
       OCSP="✘"
 
