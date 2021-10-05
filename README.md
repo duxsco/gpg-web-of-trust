@@ -39,7 +39,7 @@ Feel free to import with:
 
 First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
-1. You have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org). Although the key strength is not that much stronger than that provided by RSA-3072 and computing is significantly slower in comparison, each of your communication partner is usually doing signature verification once before GnuPG public key import. Unless you update your GnuPG public key and distribute it again though. Therefore, increased compute time shouldn't matter for the one-time verification & import.
+1. You have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org).
 
 ```bash
 openssl genpkey -aes256 -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out smime.key
