@@ -105,7 +105,7 @@ else
 
     if ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
         echo -e "\nCertificate expired. Aborting...\n"
-    elif [ "${CRL}" == "✘" ] && [ "${OCSP}" == "✘ "]; then
+    elif [ "${CRL}" == "✘" ] && [ "${OCSP}" == "✘" ]; then
         echo -e "\nCRL and OCSP check failed. Aborting...\n"
     else
         CRT_SUBJ="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
@@ -121,10 +121,11 @@ else
             PKA=""
         fi
 
+        # shellcheck disable=SC2076
         for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
             gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
             gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --export-option minimal --export --armor > "${TMPDIR}/${MECHANISM}.asc" && \
-            ( IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --with-colons --list-keys | grep "^uid" | cut -d: -f10) ) && \
+            IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM}.gpg" --with-colons --list-keys | grep "^uid" | cut -d: -f10) && \
             [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
             openssl smime -CAfile "${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMPDIR}/${MECHANISM}.asc" -inform pem >/dev/null 2>&1 && \
             SUCCESS+=("${MECHANISM}")
@@ -165,7 +166,6 @@ Feel free to import with:
   gpg --import "${GPG_PUBKEY}.asc"
 
 EOF
-    fi
 
     exit 0
 fi
