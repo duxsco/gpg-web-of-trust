@@ -1,6 +1,6 @@
 # (WIP) GnuPG Web of Trust (WIP)
 
-The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background"](#background). This new approach consist of:
+The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background information"](#background-information). This new approach consist of:
 
 1. Creation of a class 3 S/MIME key pair signed by [CAcert](http://www.cacert.org)
 2. Creation and publication of a detached S/MIME signature for your GnuPG public key
@@ -166,14 +166,11 @@ And, compare them with the hashes published by the CAcert ([HTTP](http://www.cac
 To verify and import your communication partner's GnuPG public key do:
 
 ```bash
-# Verify
-bash s2g.sh pubkey.asc.msg
-
-# If verification succeeded...
-gpg --import pubkey.asc.msg
+# Verify and follow the output as you see fit
+bash s2g.sh pubkey.asc.pkcs7
 ```
 
-## Background
+## Background information
 
 GnuPG's Web of Trust approach is long dead due to:
 
