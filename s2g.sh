@@ -94,7 +94,7 @@ else
     #
     # in case of tlsv1.3, currently unsupported by cacert.org, we take everything
     CIPHERS="ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256"
-    CRL_PEM="$(echo "$CLASS1_ROOT_CRT" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
+    CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
 
     openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL_PEM}") <<<"${CRT}" && \
       CRL="✔" || \
@@ -108,9 +108,9 @@ else
     elif ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
         echo -e "\nCertificate expired. Aborting...\n"
     else
-        CRT_SUBJ="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
-        CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"$CRT_SUBJ")"
-        CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"$CRT_SUBJ")"
+        CRT_SUBJECT="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
+        CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"$CRT_SUBJECT")"
+        CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"$CRT_SUBJECT")"
         TMPDIR="$(mktemp -d)"
 
         declare -a SUCCESS
@@ -128,7 +128,7 @@ else
             gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --export --armor "${CRT_MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
             readarray -t GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --with-colons --show-keys "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null | grep "^uid" | cut -d: -f10) >/dev/null 2>&1 && \
             [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
-            echo "${CLASS3_ROOT_CRT}" | openssl smime -CAfile /dev/stdin -verify -in "$1" -content "${TMPDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \
+            openssl smime -CAfile <<<"${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMPDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \
             SUCCESS+=("${MECHANISM}") || \
             true
         done
