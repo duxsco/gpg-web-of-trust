@@ -2,7 +2,7 @@
 
 ##  ⚠ Disclaimer ⚠
 
-`s2g.sh` is still WIP. Currently, I cannot fully test `s2g.sh`:
+`s2g.sh` is still WIP. Currently, I cannot fully test the script:
 
 - I am currently trying to recover my old [CAcert](http://www.cacert.org) account using [Password Recovery with Assurance](https://wiki.cacert.org/FAQ/LostPasswordOrAccount#Password_Recovery_with_Assurance) in order to be able to get a class 3 S/MIME certificate issued again.
 - https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest)), or:
@@ -56,7 +56,7 @@ I already notified CAcert support of the last two problems and awaiting a respon
 
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background information"](#background-information). This new approach consist of:
 
-1. Creation of a class 3 S/MIME key pair signed by [CAcert](http://www.cacert.org)
+1. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
 2. Creation and publication of a detached S/MIME signature for your GnuPG public key
 3. Retrieval and signature verification by your communication partner:
 
@@ -91,7 +91,7 @@ Feel free to import with:
 
 ```
 
-## Creation of class 3 S/MIME key pair
+## 1. Creation of class 3 S/MIME key pair
 
 First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
@@ -112,7 +112,7 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 
 ![certificate download](assets/certificate_download.png)
 
-## GnuPG public key signing with S/MIME
+## 2. GnuPG public key signing with S/MIME
 
 I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal export of my public key excluding all signatures except the most recent self-signature on each user ID.
 
@@ -130,9 +130,7 @@ openssl smime -binary -md sha256 -outform pem -sign -signer smime.crt -inkey smi
 
 3. Publish `pubkey.asc.pkcs7` over the channels of your choice
 
-## S/MIME signature verification by peer
-
-### `s2g.sh` - S/MIME signed GnuPG
+## 3. S/MIME signature verification by peer
 
 [CAcert](http://www.cacert.org) class 1 and class 3 root certificates have been integrated in `s2g.sh` (**S**/IME **s**igned **G**nuPG). To verify them print their fingerprint ([credits](https://kdecherf.com/blog/2015/04/10/show-the-certificate-chain-of-a-local-x509-file/)):
 
