@@ -141,7 +141,7 @@ else
     GPG_PUBKEY="$(mktemp)"
     mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
     cat "${TMPDIR}/${SUCCESS[0]}.asc" > "${GPG_PUBKEY}.asc"
-    IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
+    readarray -t GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
 
     cat <<EOF
 
