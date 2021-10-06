@@ -99,7 +99,7 @@ else
     openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL_PEM}") <<<"${CRT}" && \
       CRL="✔" || \
       CRL="✘"
-    openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"$CRT" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
+    openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
       OCSP="✔" || \
       OCSP="✘"
 
@@ -108,9 +108,9 @@ else
     elif ! openssl x509 -noout -checkend 0 <<<"${CRT}" >/dev/null 2>&1; then
         echo -e "\nCertificate expired. Aborting...\n"
     else
-        CRT_SUBJECT="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"$CRT")"
-        CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"$CRT_SUBJECT")"
-        CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"$CRT_SUBJECT")"
+        CRT_SUBJECT="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}")"
+        CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"${CRT_SUBJECT}")"
+        CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"${CRT_SUBJECT}")"
         TMPDIR="$(mktemp -d)"
 
         declare -a SUCCESS
