@@ -114,8 +114,9 @@ else
         TMPDIR="$(mktemp -d)"
 
         declare -a SUCCESS
+        TEMP_GPG_HOMEDIR="$(mktemp -d)"
 
-        if grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --version); then
+        if grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --version); then
             PKA="pka"
         else
             PKA=""
@@ -123,9 +124,9 @@ else
 
         # shellcheck disable=SC2076
         for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
-            gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
-            gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --export --armor "${CRT_MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
-            readarray -t GPG_UID < <(gpg --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --with-colons --show-keys "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null | grep "^uid" | cut -d: -f10) >/dev/null 2>&1 && \
+            gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
+            gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --export --armor "${CRT_MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+            readarray -t GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --with-colons --show-keys "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null | grep "^uid" | cut -d: -f10) >/dev/null 2>&1 && \
             [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
             echo "${CLASS3_ROOT_CRT}" | openssl smime -CAfile /dev/stdin -verify -in "$1" -content "${TMPDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \
             SUCCESS+=("${MECHANISM}") || \
@@ -140,7 +141,7 @@ else
     GPG_PUBKEY="$(mktemp)"
     mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
     cat "${TMPDIR}/${SUCCESS[0]}.asc" > "${GPG_PUBKEY}.asc"
-    IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
+    IFS=$'\n' read -d '' -r -a GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
 
     cat <<EOF
 
