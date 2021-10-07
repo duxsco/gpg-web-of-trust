@@ -129,9 +129,9 @@ gpgconf --homedir "${TEST_TMPDIR}" --kill all; echo ""
 
 ## 2. Creation of class 3 S/MIME key pair
 
-First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
+You need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
-1. You have to create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org).
+1. Create your private key for S/MIME and generate a CSR. Unfortunately, [CAcert](http://www.cacert.org) doesn't support ECC. Thus, I am using RSA-4096, having the strongest key strength among algorithms supported by [CAcert](http://www.cacert.org).
 
 ```bash
 openssl genpkey -aes256 -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out smime.key
