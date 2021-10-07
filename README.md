@@ -56,9 +56,10 @@ I already notified CAcert support of the last two problems and awaiting a respon
 
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background information"](#background-information). This new approach consist of:
 
-1. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
-2. Creation and publication of a detached S/MIME signature for your GnuPG public key
-3. Retrieval and signature verification by your communication partner:
+1. Make sure that public keys are published without later modifications for signature verification to succeed
+2. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
+3. Creation and publication of a detached S/MIME signature for your GnuPG public key
+4. Retrieval and signature verification by your communication partner:
 
 ```
 $ bash s2g.sh pubkey.asc.pkcs7
@@ -91,7 +92,37 @@ Feel free to import with:
 
 ```
 
-## 1. Creation of class 3 S/MIME key pair
+## 1. Make sure that public keys are published without later modifications
+
+You need to make sure that your public key that is stored remotely doesn't differ from the local public key that your are going to S/MIME sign later on. Otherwise, signature verification with `s2g.sh` will fail if no unmodified public key is found. I personally rule out any modifications by a third party by providing my public key over DANE and self-hosted WKD where nobody else has write access to.
+
+In order to compare local and remotely stored public keys, create a SHA256 checksum of your local public key file:
+
+```bash
+# Replace with your mail address
+gpg --export-options export-minimal --armor --export max@mustermann@example.org > pubkey.asc
+
+# pubkey.asc is the file that we are going to S/MIME sign later on
+sha256sum pubkey.asc
+```
+
+..., compare the checksum with the output provided by following codeblock:
+
+```bash
+# Replace with your mail address
+export MAIL="max.mustermann@example.org" && \
+export TMPDIR="$(mktemp -d)" && \
+for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
+    gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${MAIL}" >/dev/null 2>&1 && \
+    gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --export --armor "${MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+    echo "${MECHANISM#*://}: $(sha256sum "${TMPDIR}/${MECHANISM#*://}.asc")"
+done | column -t
+gpgconf --homedir "${TMPDIR}" --kill all; echo ""
+```
+
+... and make sure that checksums are identical.
+
+## 2. Creation of class 3 S/MIME key pair
 
 First and foremost, you need a class 3 S/MIME certificate signed by [CAcert](http://www.cacert.org):
 
@@ -112,7 +143,7 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 
 ![certificate download](assets/certificate_download.png)
 
-## 2. GnuPG public key signing with S/MIME
+## 3. GnuPG public key signing with S/MIME
 
 I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal export of my public key excluding all signatures except the most recent self-signature on each user ID.
 
@@ -130,7 +161,7 @@ openssl smime -binary -md sha256 -outform pem -sign -signer smime.crt -inkey smi
 
 3. Publish `pubkey.asc.pkcs7` over the channels of your choice
 
-## 3. S/MIME signature verification by peer
+## 4. S/MIME signature verification by peer
 
 [CAcert](http://www.cacert.org) class 1 and class 3 root certificates have been integrated in `s2g.sh` (**S**/IME **s**igned **G**nuPG). To verify them print their fingerprint ([credits](https://kdecherf.com/blog/2015/04/10/show-the-certificate-chain-of-a-local-x509-file/)):
 
