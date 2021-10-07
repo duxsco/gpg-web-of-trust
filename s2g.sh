@@ -127,7 +127,7 @@ else
         # shellcheck disable=SC2076
         for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
             gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
-            gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --export --armor "${CRT_MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+            gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${CRT_MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
             readarray -t GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --with-colons --show-keys "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null | grep "^uid" | cut -d: -f10) >/dev/null 2>&1 && \
             [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
             openssl smime -CAfile <<<"${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMPDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \

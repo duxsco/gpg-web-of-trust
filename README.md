@@ -114,7 +114,7 @@ export MAIL="max.mustermann@example.org" && \
 export TMPDIR="$(mktemp -d)" && \
 for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
     gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${MAIL}" >/dev/null 2>&1 && \
-    gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --export --armor "${MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+    gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
     echo "${MECHANISM#*://}: $(sha256sum "${TMPDIR}/${MECHANISM#*://}.asc")"
 done | column -t
 gpgconf --homedir "${TMPDIR}" --kill all; echo ""
@@ -150,7 +150,7 @@ I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal e
 1. Export your GnuPG public key:
 
 ```bash
-gpg --export-options export-minimal --export --armor "YOUR KEY ID" > pubkey.asc
+gpg --export-options export-minimal --armor --export "YOUR KEY ID" > pubkey.asc
 ```
 
 2. Create a S/MIME detached signature for your GnuPG public key:
