@@ -110,14 +110,14 @@ sha256sum pubkey.asc
 
 ```bash
 # Replace with your mail address
-export MAIL="max.mustermann@example.org" && \
-export TMPDIR="$(mktemp -d)" && \
+TEST_MAIL="max.mustermann@example.org" && \
+TEST_TMPDIR="$(mktemp -d)" && \
 for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
-    gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${MAIL}" >/dev/null 2>&1 && \
-    gpg --homedir "${TMPDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
-    echo "${MECHANISM#*://}: $(sha256sum "${TMPDIR}/${MECHANISM#*://}.asc")"
+    gpg --homedir "${TEST_TMPDIR}" --no-default-keyring --keyring "${TEST_TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${TEST_MAIL}" >/dev/null 2>&1 && \
+    gpg --homedir "${TEST_TMPDIR}" --no-default-keyring --keyring "${TEST_TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${TEST_MAIL}" > "${TEST_TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+    echo "${MECHANISM#*://}: $(sha256sum "${TEST_TMPDIR}/${MECHANISM#*://}.asc")"
 done | column -t
-gpgconf --homedir "${TMPDIR}" --kill all; echo ""
+gpgconf --homedir "${TEST_TMPDIR}" --kill all; echo ""
 ```
 
 ... and make sure that checksums are identical.
