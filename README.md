@@ -106,11 +106,16 @@ gpg --export-options export-minimal --armor --export max@mustermann@example.org 
 sha256sum pubkey.asc
 ```
 
-..., compare the checksum with the output provided by following codeblock:
+..., compare the checksum with the output provided by following code block:
 
 ```bash
 # Replace with your mail address
-TEST_MAIL="max.mustermann@example.org" && \
+TEST_MAIL="max.mustermann@example.org"
+```
+
+Code block:
+
+```bash
 TEST_TMPDIR="$(mktemp -d)" && \
 for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
     gpg --homedir "${TEST_TMPDIR}" --no-default-keyring --keyring "${TEST_TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${TEST_MAIL}" >/dev/null 2>&1 && \
