@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eop pipefail
+set -euo pipefail
 
 CLASS1_ROOT_CRT="
 -----BEGIN CERTIFICATE-----
