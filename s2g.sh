@@ -126,12 +126,11 @@ else
         CRT_SUBJECT="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}")"
         CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"${CRT_SUBJECT}")"
         CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"${CRT_SUBJECT}")"
-        TMPDIR="$(mktemp -d)"
 
         declare -a SUCCESS
-        TEMP_GPG_HOMEDIR="$(mktemp -d)"
+        TMP_GPG_HOMEDIR="$(mktemp -d)"
 
-        if grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --version); then
+        if grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version); then
             PKA="pka"
         else
             PKA=""
@@ -141,11 +140,11 @@ else
 
         # shellcheck disable=SC2076
         for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
-            gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
-            gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${CRT_MAIL}" > "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
-            readarray -t GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMPDIR}/${MECHANISM#*://}.gpg" --with-colons --show-keys "${TMPDIR}/${MECHANISM#*://}.asc" 2>/dev/null | grep "^uid" | cut -d: -f10) >/dev/null 2>&1 && \
+            gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
+            gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+            readarray -t GPG_UID < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" --with-colons --show-keys "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" 2>/dev/null | grep "^uid" | cut -d: -f10) >/dev/null 2>&1 && \
             [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
-            openssl smime -CAfile <<<"${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMPDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \
+            openssl smime -CAfile <<<"${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \
             SUCCESS+=("${MECHANISM}")
         done
 
@@ -158,8 +157,8 @@ if [ -z ${SUCCESS+x} ] || [[ ${#SUCCESS[@]} -eq 0 ]]; then
 else
     GPG_PUBKEY="$(mktemp)"
     mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
-    cat "${TMPDIR}/${SUCCESS[0]}.asc" > "${GPG_PUBKEY}.asc"
-    readarray -t GPG_UID < <(gpg --homedir "${TEMP_GPG_HOMEDIR}" --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
+    cat "${TMP_GPG_HOMEDIR}/${SUCCESS[0]}.asc" > "${GPG_PUBKEY}.asc"
+    readarray -t GPG_UID < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --with-colons --show-keys "${GPG_PUBKEY}.asc" | grep "^uid" | cut -d: -f10)
 
     cat <<EOF
 
