@@ -130,11 +130,7 @@ else
         declare -a SUCCESS
         TMP_GPG_HOMEDIR="$(mktemp -d)"
 
-        if grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version); then
-            PKA="pka"
-        else
-            PKA=""
-        fi
+        grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version) && PKA="pka" || PKA=""
 
         set +e
 
