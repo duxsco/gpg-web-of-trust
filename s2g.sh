@@ -97,8 +97,8 @@ else
 
     CLASS1_CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CLASS1_ROOT_CRT}" | grep -Po 'URI:\K.*')"
     CLASS3_CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CLASS3_ROOT_CRT}" | grep -Po 'URI:\K.*')"
-    CLASS1_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS1_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
-    CLASS3_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS3_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
+    CLASS1_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --cert-status --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS1_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
+    CLASS3_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --cert-status --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS3_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
 
     openssl verify -crl_check_all -CAfile <(echo "${CLASS1_ROOT_CRT}") -untrusted <(echo "${CLASS3_ROOT_CRT}") -CRLfile <(echo "${CLASS1_CRL_PEM}") -CRLfile <(echo "${CLASS3_CRL_PEM}") <<<"${CRT}" && \
       CRL="✔" || \
