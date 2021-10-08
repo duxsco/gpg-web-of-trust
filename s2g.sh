@@ -100,12 +100,23 @@ else
     CLASS1_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --cert-status --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS1_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
     CLASS3_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --cert-status --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS3_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
 
-    openssl verify -crl_check_all -CAfile <(echo "${CLASS1_ROOT_CRT}") -untrusted <(echo "${CLASS3_ROOT_CRT}") -CRLfile <(echo "${CLASS1_CRL_PEM}") -CRLfile <(echo "${CLASS3_CRL_PEM}") <<<"${CRT}" && \
-      CRL="✔" || \
-      CRL="✘"
-    openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
-      OCSP="✔" || \
-      OCSP="✘"
+    openssl verify \
+        -crl_check_all \
+        -CAfile <(echo "${CLASS1_ROOT_CRT}") \
+        -untrusted <(echo "${CLASS3_ROOT_CRT}") \
+        -CRLfile <(echo "${CLASS1_CRL_PEM}") \
+        -CRLfile <(echo "${CLASS3_CRL_PEM}") \
+        <<<"${CRT}" >/dev/null 2>&1 && \
+    CRL="✔" || \
+    CRL="✘"
+
+    openssl ocsp \
+        -CAfile <(echo "${CLASS1_ROOT_CRT}") \
+        -issuer <(echo "${CLASS3_ROOT_CRT}") \
+        -cert <(echo "${CRT}") \
+        -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
+    OCSP="✔" || \
+    OCSP="✘"
 
     if [ "${CRL}" == "✘" ] && [ "${OCSP}" == "✘" ]; then
         echo -e "\nCRL and OCSP check failed. Aborting...\n"
