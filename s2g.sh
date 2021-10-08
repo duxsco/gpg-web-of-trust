@@ -88,15 +88,19 @@ if [ ! -f "$1" ]; then
     echo -e "\nNo file provided, e.g. \"bash ${0##*/} pubkey.asc.pkcs7\". Aborting...\n"
 else
     CRT="$(openssl pkcs7 -print_certs -in "$1" | openssl x509)"
-    CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CRT}" | grep -Po 'URI:\K.*')"
+
     # suite list created with:
     # openssl ciphers -v -s | grep AEAD | grep ECDHE | awk '{print $1}' | paste -d: -s -
     #
     # in case of tlsv1.3, currently unsupported by cacert.org, we take everything
     CIPHERS="ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256"
-    CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
 
-    openssl verify -crl_check -CAfile <(echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}\n${CRL_PEM}") <<<"${CRT}" && \
+    CLASS1_CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CLASS1_ROOT_CRT}" | grep -Po 'URI:\K.*')"
+    CLASS3_CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CLASS3_ROOT_CRT}" | grep -Po 'URI:\K.*')"
+    CLASS1_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS1_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
+    CLASS3_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --ciphers "${CIPHERS}" --proto '=https' --tlsv1.2 "${CLASS3_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
+
+    openssl verify -crl_check_all -CAfile <(echo "${CLASS1_ROOT_CRT}") -untrusted <(echo "${CLASS3_ROOT_CRT}") -CRLfile <(echo "${CLASS1_CRL_PEM}") -CRLfile <(echo "${CLASS3_CRL_PEM}") <<<"${CRT}" && \
       CRL="✔" || \
       CRL="✘"
     openssl ocsp -CAfile <(echo "${CLASS1_ROOT_CRT}") -issuer <(echo "${CLASS3_ROOT_CRT}") -cert <(echo "${CRT}") -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
