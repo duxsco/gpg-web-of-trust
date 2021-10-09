@@ -207,11 +207,11 @@ EOF
 S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
   - E-Mail:     ${CRT_MAIL}
+
 EOF
 
     if [ -n "${SUBJECT_UID_MATCH+x}" ]; then
         cat <<EOF
-
 GnuPG UID(s):
 $(printf '  - %s\n' "${GPG_UID[@]}")
 
