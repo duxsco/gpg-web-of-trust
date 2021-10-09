@@ -177,9 +177,9 @@ else
             -content "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" \
             -inform pem >/dev/null 2>&1 && \
         cat "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" > "${GPG_PUBKEY}.asc" && \
-        GPG_PUBKEY_SMIME_SIGNED="✔" && \
+        GPG_PUBKEY_SMIME_VERIFIED="✔" && \
         break || \
-        GPG_PUBKEY_SMIME_SIGNED="✘"
+        GPG_PUBKEY_SMIME_VERIFIED="✘"
     done
 
     cat <<EOF
@@ -193,10 +193,10 @@ S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
   - E-Mail:     ${CRT_MAIL}
 
-GnuPG public key signed by S/MIME found: ${GPG_PUBKEY_SMIME_SIGNED}
+GnuPG public key signed by S/MIME found: ${GPG_PUBKEY_SMIME_VERIFIED}
 EOF
 
-    if [ "${GPG_PUBKEY_SMIME_SIGNED}" == "✔" ]; then
+    if [ "${GPG_PUBKEY_SMIME_VERIFIED}" == "✔" ]; then
         # shellcheck disable=SC2076
         readarray -t GPG_UID < <(
             gpg \
