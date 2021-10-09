@@ -84,24 +84,32 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 -----END CERTIFICATE-----
 "
 
-# certificate suite list created with:
-# openssl ciphers -v -s | grep AEAD | grep ECDHE | awk '{print $1}' | paste -d: -s -
-#
-# in case of tlsv1.3, currently unsupported by cacert.org, we take everything
-CIPHERS="ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256"
+function getCRL() {
+    # Certificate suite list created with:
+    # openssl ciphers -v -s | grep AEAD | grep ECDHE | awk '{print $1}' | paste -d: -s -
+    #
+    # In case of tlsv1.3, we take every siphcer suite.
 
-if [ ! -f "$1" ]; then
-    echo -e "\nNo file provided, e.g. \"bash ${0##*/} pubkey.asc.pkcs7\". Aborting...\n"
+    echo "${CLASS1_ROOT_CRT}" | \
+    curl \
+        --fail --silent --show-error \
+        --cacert /dev/stdin \
+        --cert-status --proto '=https' --tlsv1.2 \
+        --ciphers "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256" \
+        "$(openssl x509 -noout -ext crlDistributionPoints <<<"$1" | grep -Po 'URI:\K.*' | sed 's#http://#https://#')" | \
+    openssl crl -inform DER -outform PEM
+}
+
+if [ ! -f "$1" ] || ! openssl pkcs7 -noout -in "$1"; then
+    echo -e "\nNo PKCS #7 file provided, e.g. \"bash ${0##*/} pubkey.asc.pkcs7\". Aborting...\n"
 else
     CRT="$(openssl pkcs7 -print_certs -in "$1" | openssl x509)"
     CRT_SUBJECT="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}")"
     CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"${CRT_SUBJECT}")"
     CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"${CRT_SUBJECT}")"
 
-    CLASS1_CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CLASS1_ROOT_CRT}" | grep -Po 'URI:\K.*')"
-    CLASS3_CRL_URI="$(openssl x509 -noout -ext crlDistributionPoints <<<"${CLASS3_ROOT_CRT}" | grep -Po 'URI:\K.*')"
-    CLASS1_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --cert-status --proto '=https' --tlsv1.2 --ciphers "${CIPHERS}" "${CLASS1_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
-    CLASS3_CRL_PEM="$(echo "${CLASS1_ROOT_CRT}" | curl -fsS --cacert /dev/stdin --cert-status --proto '=https' --tlsv1.2 --ciphers "${CIPHERS}" "${CLASS3_CRL_URI/http:\/\//https:\/\/}" | openssl crl -inform DER -outform PEM)"
+    CLASS1_CRL_PEM="$(getCRL "${CLASS1_ROOT_CRT}")"
+    CLASS3_CRL_PEM="$(getCRL "${CLASS3_ROOT_CRT}")"
 
     TMP_GPG_HOMEDIR="$(mktemp -d)"
     GPG_PUBKEY="$(mktemp)"
@@ -138,16 +146,30 @@ else
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -issuer <(echo "${CLASS3_ROOT_CRT}") \
         -cert <(echo "${CRT}") \
-        -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
+        -url "$(
+            openssl x509 \
+                -noout \
+                -ocsp_uri <<<"${CRT}" | \
+            sed 's#^http://#https://#')" >/dev/null 2>&1 && \
     OCSP="✔" || \
     OCSP="✘"
 
     set +e
 
     for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
-        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" --auto-key-locate "clear,${MECHANISM}" --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
-        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" --export-options export-minimal --armor --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
-        openssl smime -CAfile <<<"${CLASS3_ROOT_CRT}" -verify -in "$1" -content "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" -inform pem >/dev/null 2>&1 && \
+        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+            --auto-key-locate "clear,${MECHANISM}" \
+            --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
+        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+            --export-options export-minimal \
+            --armor \
+            --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+        openssl smime \
+            -CAfile <<<"${CLASS3_ROOT_CRT}" \
+            -verify \
+            -in "$1" \
+            -content "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" \
+            -inform pem >/dev/null 2>&1 && \
         cat "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" > "${GPG_PUBKEY}.asc" && \
         break
     done
@@ -176,9 +198,7 @@ else
 Signature check results:
   - CAcert class3 certificate: ${CACERT_CLASS3_CRT}
   - Not expired: ${NOT_EXPIRED}
-  - Not revoked:
-    - CRL ${CRL}
-    - OCSP ${OCSP}
+  - Not revoked (CRL/OCSP): ${CRL}/${OCSP}
 EOF
 
     if [ -n "${SUBJECT_UID_MATCH+x}" ]; then
