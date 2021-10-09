@@ -100,13 +100,20 @@ function getCRL() {
     openssl crl -inform DER -outform PEM
 }
 
+function getCRTsubjectValue() {
+    openssl x509 \
+        -noout \
+        -subject \
+        -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}" | \
+    grep -Po "^[[:space:]]*$1=\K.*"
+}
+
 if [ ! -f "$1" ] || ! openssl pkcs7 -noout -in "$1"; then
     echo -e "\nNo PKCS #7 file provided, e.g. \"bash ${0##*/} pubkey.asc.pkcs7\". Aborting...\n"
 else
     CRT="$(openssl pkcs7 -print_certs -in "$1" | openssl x509)"
-    CRT_SUBJECT="$(openssl x509 -noout -subject -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}")"
-    CRT_NAME="$(grep -Po '^[[:space:]]*commonName=\K.*' <<<"${CRT_SUBJECT}")"
-    CRT_MAIL="$(grep -Po '^[[:space:]]*emailAddress=\K.*' <<<"${CRT_SUBJECT}")"
+    CRT_NAME="$(getCRTsubjectValue "commonName")"
+    CRT_MAIL="$(getCRTsubjectValue "emailAddress")"
 
     CLASS1_CRL_PEM="$(getCRL "${CLASS1_ROOT_CRT}")"
     CLASS3_CRL_PEM="$(getCRL "${CLASS3_ROOT_CRT}")"
@@ -155,6 +162,7 @@ else
     OCSP="✘"
 
     for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
+        # shellcheck disable=SC2015
         gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
             --auto-key-locate "clear,${MECHANISM}" \
             --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
@@ -177,9 +185,7 @@ else
         # shellcheck disable=SC2076
         readarray -t GPG_UID < <(
             gpg \
-                --homedir "${TMP_GPG_HOMEDIR}" \
-                --no-default-keyring \
-                --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
                 --with-colons \
                 --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
             grep "^uid" | \
