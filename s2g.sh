@@ -130,14 +130,14 @@ else
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -untrusted <(echo "${CLASS3_ROOT_CRT}") \
         <<<"${CRT}" >/dev/null 2>&1 && \
-    CACERT_CLASS3_CRT="✔" || \
-    CACERT_CLASS3_CRT="✘"
+    VALID_CACERT_CLASS3_CRT="✔" || \
+    VALID_CACERT_CLASS3_CRT="✘"
 
     openssl x509 \
         -noout \
         -checkend 0 <<<"${CRT}" >/dev/null 2>&1 && \
-    NOT_EXPIRED="✔" || \
-    NOT_EXPIRED="✘"
+    CRT_NOT_EXPIRED="✔" || \
+    CRT_NOT_EXPIRED="✘"
 
     openssl verify \
         -crl_check_all \
@@ -146,8 +146,8 @@ else
         -CRLfile <(echo "${CLASS1_CRL_PEM}") \
         -CRLfile <(echo "${CLASS3_CRL_PEM}") \
         <<<"${CRT}" >/dev/null 2>&1 && \
-    CRL="✔" || \
-    CRL="✘"
+    CRT_NOT_REVOKED_VIA_CRL="✔" || \
+    CRT_NOT_REVOKED_VIA_CRL="✘"
 
     openssl ocsp \
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
@@ -158,8 +158,8 @@ else
                 -noout \
                 -ocsp_uri <<<"${CRT}" | \
             sed 's#^http://#https://#')" >/dev/null 2>&1 && \
-    OCSP="✔" || \
-    OCSP="✘"
+    CRT_NOT_REVOKED_VIA_OCSP="✔" || \
+    CRT_NOT_REVOKED_VIA_OCSP="✘"
 
     for MECHANISM in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
         # shellcheck disable=SC2015
@@ -185,9 +185,9 @@ else
     cat <<EOF
 
 S/MIME signature file (${1##*/}):
-  - Valid CAcert class3 certificate: ${CACERT_CLASS3_CRT}
-  - Not expired: ${NOT_EXPIRED}
-  - Not revoked (CRL/OCSP): ${CRL}/${OCSP}
+  - Valid CAcert class3 certificate: ${VALID_CACERT_CLASS3_CRT}
+  - Not expired: ${CRT_NOT_EXPIRED}
+  - Not revoked (CRL/OCSP): ${CRT_NOT_REVOKED_VIA_CRL}/${CRT_NOT_REVOKED_VIA_OCSP}
 
 S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
