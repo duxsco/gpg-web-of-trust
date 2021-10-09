@@ -161,25 +161,25 @@ else
     CRT_NOT_REVOKED_VIA_OCSP="✔" || \
     CRT_NOT_REVOKED_VIA_OCSP="✘"
 
-    for MECHANISM in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
+    for GPG_PUBKEY_SOURCE in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
         # shellcheck disable=SC2015
-        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
-            --auto-key-locate "clear,${MECHANISM}" \
+        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
+            --auto-key-locate "clear,${GPG_PUBKEY_SOURCE}" \
             --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
-        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
             --export-options export-minimal \
             --armor \
-            --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" 2>/dev/null && \
+            --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" 2>/dev/null && \
         openssl smime \
             -CAfile <<<"${CLASS3_ROOT_CRT}" \
             -verify \
             -in "$1" \
-            -content "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" \
+            -content "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" \
             -inform pem >/dev/null 2>&1 && \
-        cat "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" > "${GPG_PUBKEY}.asc" && \
-        GPG_PUBKEY_SOURCE="${MECHANISM}" && \
+        cat "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" > "${GPG_PUBKEY}.asc" && \
+        GPG_PUBKEY_SMIME_SIGNED="✔" && \
         break || \
-        GPG_PUBKEY_SOURCE=""
+        GPG_PUBKEY_SMIME_SIGNED="✘"
     done
 
     cat <<EOF
@@ -193,30 +193,26 @@ S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
   - E-Mail:     ${CRT_MAIL}
 
+GnuPG public key signed by S/MIME found: ${GPG_PUBKEY_SMIME_SIGNED}
 EOF
 
-    if [ -f "${GPG_PUBKEY}.asc" ] && [ -s "${GPG_PUBKEY}.asc" ]; then
-        cat <<EOF
-GnuPG public key:
-  - Fetched from: ${GPG_PUBKEY_SOURCE}
-EOF
-
-        echo -n "  - CRT Subject and GnuPG UID match: "
-
+    if [ "${GPG_PUBKEY_SMIME_SIGNED}" == "✔" ]; then
         # shellcheck disable=SC2076
         readarray -t GPG_UID < <(
             gpg \
-                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
                 --with-colons \
                 --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
             grep "^uid" | \
             cut -d: -f10
         ) >/dev/null 2>&1 && \
         [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
-        echo "✔" || \
-        echo "✘"
+        SUBJECT_GPG_UID_MATCH="✔" || \
+        SUBJECT_GPG_UID_MATCH="✘"
 
         cat <<EOF
+  - Fetched from: ${GPG_PUBKEY_SOURCE}
+  - CRT Subject and GnuPG UID match: ${SUBJECT_GPG_UID_MATCH}
 
 GnuPG UID(s):
 $(printf '  - %s\n' "${GPG_UID[@]}")
@@ -225,5 +221,7 @@ Feel free to import with:
   gpg --import "${GPG_PUBKEY}.asc"
 
 EOF
+    else
+        echo ""
     fi
 fi
