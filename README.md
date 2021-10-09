@@ -64,8 +64,8 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 ```
 $ bash s2g.sh pubkey.asc.pkcs7
 
-S/MIME certificate:
-  - CAcert class3 certificate: ✔
+S/MIME signature (pubkey.asc.pkcs7):
+  - Valid CAcert class3 certificate: ✔
   - Not expired: ✔
   - Not revoked (CRL/OCSP): ✔/✔
 

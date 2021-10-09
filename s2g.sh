@@ -198,8 +198,8 @@ else
 
     cat <<EOF
 
-S/MIME certificate:
-  - CAcert class3 certificate: ${CACERT_CLASS3_CRT}
+S/MIME signature file (${1##*/}):
+  - Valid CAcert class3 certificate: ${CACERT_CLASS3_CRT}
   - Not expired: ${NOT_EXPIRED}
   - Not revoked (CRL/OCSP): ${CRL}/${OCSP}
 
