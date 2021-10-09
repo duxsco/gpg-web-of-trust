@@ -195,7 +195,7 @@ S/MIME certificate subject:
 
 EOF
 
-    if [ -n "${GPG_PUBKEY_SOURCE}" ]; then
+    if [ -f "${GPG_PUBKEY}.asc" ] && [ -s "${GPG_PUBKEY}.asc" ]; then
         cat <<EOF
 GnuPG public key:
   - Fetched from: ${GPG_PUBKEY_SOURCE}
