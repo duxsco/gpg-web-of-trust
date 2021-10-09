@@ -182,8 +182,8 @@ else
         GPG_PUBKEY_SOURCE=""
     done
 
-    [ -n "${GPG_PUBKEY_SOURCE}" ] && \
     # shellcheck disable=SC2076
+    [ -n "${GPG_PUBKEY_SOURCE}" ] && \
     readarray -t GPG_UID < <(
         gpg \
             --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
