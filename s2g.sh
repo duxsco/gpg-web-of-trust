@@ -189,33 +189,32 @@ S/MIME signature file (${1##*/}):
   - Certificate not expired: ${CRT_NOT_EXPIRED}
   - Certificate not revoked (CRL/OCSP): ${CRT_NOT_REVOKED_VIA_CRL}/${CRT_NOT_REVOKED_VIA_OCSP}
 
-S/MIME certificate subject:
-  - CommonName: ${CRT_NAME}
-  - E-Mail:     ${CRT_MAIL}
-
-GnuPG public key signed by S/MIME found: ${GPG_PUBKEY_SMIME_VERIFIED}
+GnuPG public key:
+  - Found one verified by S/MIME signature: ${GPG_PUBKEY_SMIME_VERIFIED}
 EOF
 
     if [ "${GPG_PUBKEY_SMIME_VERIFIED}" == "✔" ]; then
-        # shellcheck disable=SC2076
-        readarray -t GPG_UID < <(
-            gpg \
-                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
-                --with-colons \
-                --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
-            grep "^uid" | \
-            cut -d: -f10
-        ) >/dev/null 2>&1 && \
-        [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
-        SUBJECT_GPG_UID_MATCH="✔" || \
-        SUBJECT_GPG_UID_MATCH="✘"
-
         cat <<EOF
   - Fetched from: ${GPG_PUBKEY_SOURCE}
-  - CRT Subject and GnuPG UID match: ${SUBJECT_GPG_UID_MATCH}
 
-GnuPG UID(s):
-$(printf '  - %s\n' "${GPG_UID[@]}")
+GnuPG UID(s) (Matches S/MIME subject? ✔|✘):
+EOF
+
+        gpg \
+            --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
+            --with-colons \
+            --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
+        grep "^uid" | \
+        cut -d: -f10 | \
+        while read -r GPG_UID; do
+            if [ "${GPG_UID}" == "${CRT_NAME} <${CRT_MAIL}>" ]; then
+                echo "  ✔ ${GPG_UID}"
+            else
+                echo "  ✘ ${GPG_UID}"
+            fi
+        done
+
+        cat <<EOF
 
 Feel free to import with:
   gpg --import "${GPG_PUBKEY}.asc"
