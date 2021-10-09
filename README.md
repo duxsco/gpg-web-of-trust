@@ -66,8 +66,8 @@ $ bash s2g.sh pubkey.asc.pkcs7
 
 S/MIME signature file (pubkey.asc.pkcs7):
   - Valid CAcert class3 certificate: ✔
-  - Not expired: ✔
-  - Not revoked (CRL/OCSP): ✔/✔
+  - Certificate not expired: ✔
+  - Certificate not revoked (CRL/OCSP): ✔/✔
 
 S/MIME certificate subject:
   - CommonName: David Sardari
