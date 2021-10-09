@@ -177,38 +177,35 @@ else
             -content "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" \
             -inform pem >/dev/null 2>&1 && \
         cat "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" > "${GPG_PUBKEY}.asc" && \
+        GPG_PUBKEY_SOURCE="${MECHANISM}" && \
         break || \
-        true
+        GPG_PUBKEY_SOURCE=""
     done
 
-    if [ -f "${GPG_PUBKEY}.asc" ] && [ -s "${GPG_PUBKEY}.asc" ]; then
-        # shellcheck disable=SC2076
-        readarray -t GPG_UID < <(
-            gpg \
-                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
-                --with-colons \
-                --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
-            grep "^uid" | \
-            cut -d: -f10
-        ) >/dev/null 2>&1 && \
-        [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
-        SUBJECT_UID_MATCH="✔" || \
-        SUBJECT_UID_MATCH="✘"
-    fi
+    [ -n "${GPG_PUBKEY_SOURCE}" ] && \
+    # shellcheck disable=SC2076
+    readarray -t GPG_UID < <(
+        gpg \
+            --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+            --with-colons \
+            --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
+        grep "^uid" | \
+        cut -d: -f10
+    ) >/dev/null 2>&1 && \
+    [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
+    SUBJECT_UID_MATCH="✔" || \
+    SUBJECT_UID_MATCH="✘"
 
     cat <<EOF
 
-Signature check results:
+S/MIME certificate:
   - CAcert class3 certificate: ${CACERT_CLASS3_CRT}
   - Not expired: ${NOT_EXPIRED}
   - Not revoked (CRL/OCSP): ${CRL}/${OCSP}
-EOF
 
-    if [ -n "${SUBJECT_UID_MATCH+x}" ]; then
-        echo "  - CRT Subject and GnuPG UID match: ${SUBJECT_UID_MATCH}"
-    fi
-
-    cat <<EOF
+GnuPG public key:
+  - Fetched from: ${GPG_PUBKEY_SOURCE}
+  - CRT Subject and GnuPG UID match: ${SUBJECT_UID_MATCH}
 
 S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
@@ -216,7 +213,7 @@ S/MIME certificate subject:
 
 EOF
 
-    if [ -n "${SUBJECT_UID_MATCH+x}" ]; then
+    if [ -n "${GPG_PUBKEY_SOURCE}" ]; then
         cat <<EOF
 GnuPG UID(s):
 $(printf '  - %s\n' "${GPG_UID[@]}")
