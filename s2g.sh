@@ -123,7 +123,7 @@ else
     mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
 
     grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version) && \
-    PKA="pka" || \
+    PKA="PKA" || \
     PKA=""
 
     openssl verify \
@@ -161,7 +161,7 @@ else
     OCSP="✔" || \
     OCSP="✘"
 
-    for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
+    for MECHANISM in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
         # shellcheck disable=SC2015
         gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
             --auto-key-locate "clear,${MECHANISM}" \
