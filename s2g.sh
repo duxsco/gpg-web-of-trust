@@ -154,8 +154,6 @@ else
     OCSP="✔" || \
     OCSP="✘"
 
-    set +e
-
     for MECHANISM in "dane" "wkd" ${PKA} "cert" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
         gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
             --auto-key-locate "clear,${MECHANISM}" \
@@ -171,10 +169,9 @@ else
             -content "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" \
             -inform pem >/dev/null 2>&1 && \
         cat "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.asc" > "${GPG_PUBKEY}.asc" && \
-        break
+        break || \
+        true
     done
-
-    set -e
 
     if [ -f "${GPG_PUBKEY}.asc" ] && [ -s "${GPG_PUBKEY}.asc" ]; then
         # shellcheck disable=SC2076
