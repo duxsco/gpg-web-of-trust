@@ -203,10 +203,6 @@ S/MIME signature file (${1##*/}):
   - Not expired: ${NOT_EXPIRED}
   - Not revoked (CRL/OCSP): ${CRL}/${OCSP}
 
-GnuPG public key:
-  - Fetched from: ${GPG_PUBKEY_SOURCE}
-  - CRT Subject and GnuPG UID match: ${SUBJECT_UID_MATCH}
-
 S/MIME certificate subject:
   - CommonName: ${CRT_NAME}
   - E-Mail:     ${CRT_MAIL}
@@ -215,6 +211,10 @@ EOF
 
     if [ -n "${GPG_PUBKEY_SOURCE}" ]; then
         cat <<EOF
+GnuPG public key:
+  - Fetched from: ${GPG_PUBKEY_SOURCE}
+  - CRT Subject and GnuPG UID match: ${SUBJECT_UID_MATCH}
+
 GnuPG UID(s):
 $(printf '  - %s\n' "${GPG_UID[@]}")
 
