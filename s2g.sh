@@ -182,20 +182,6 @@ else
         GPG_PUBKEY_SOURCE=""
     done
 
-    # shellcheck disable=SC2076
-    [ -n "${GPG_PUBKEY_SOURCE}" ] && \
-    readarray -t GPG_UID < <(
-        gpg \
-            --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
-            --with-colons \
-            --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
-        grep "^uid" | \
-        cut -d: -f10
-    ) >/dev/null 2>&1 && \
-    [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
-    SUBJECT_UID_MATCH="✔" || \
-    SUBJECT_UID_MATCH="✘"
-
     cat <<EOF
 
 S/MIME signature file (${1##*/}):
@@ -213,7 +199,24 @@ EOF
         cat <<EOF
 GnuPG public key:
   - Fetched from: ${GPG_PUBKEY_SOURCE}
-  - CRT Subject and GnuPG UID match: ${SUBJECT_UID_MATCH}
+EOF
+
+        echo -n "  - CRT Subject and GnuPG UID match: "
+
+        # shellcheck disable=SC2076
+        readarray -t GPG_UID < <(
+            gpg \
+                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${MECHANISM#*://}.gpg" \
+                --with-colons \
+                --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
+            grep "^uid" | \
+            cut -d: -f10
+        ) >/dev/null 2>&1 && \
+        [[ " ${GPG_UID[*]} " =~ " ${CRT_NAME} <${CRT_MAIL}> " ]] && \
+        echo "✔" || \
+        echo "✘"
+
+        cat <<EOF
 
 GnuPG UID(s):
 $(printf '  - %s\n' "${GPG_UID[@]}")
