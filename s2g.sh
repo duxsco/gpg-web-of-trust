@@ -184,7 +184,7 @@ else
 
     cat <<EOF
 
-S/MIME signature file (${1##*/}):
+S/MIME signature (${1##*/}):
   - Valid CAcert class3 certificate: ${VALID_CACERT_CLASS3_CRT}
   - Certificate not expired: ${CRT_NOT_EXPIRED}
   - Certificate not revoked (CRL/OCSP): ${CRT_NOT_REVOKED_VIA_CRL}/${CRT_NOT_REVOKED_VIA_OCSP}
@@ -195,7 +195,7 @@ EOF
 
     if [ "${GPG_PUBKEY_SMIME_VERIFIED}" == "✔" ]; then
         cat <<EOF
-  - Fetched from: ${GPG_PUBKEY_SOURCE}
+  - Fetched via: ${GPG_PUBKEY_SOURCE}
 
 GnuPG UID(s) (Matches S/MIME subject? ✔|✘):
 EOF
