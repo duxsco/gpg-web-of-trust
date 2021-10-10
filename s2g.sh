@@ -130,14 +130,14 @@ else
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -untrusted <(echo "${CLASS3_ROOT_CRT}") \
         <<<"${CRT}" >/dev/null 2>&1 && \
-    VALID_CACERT_CLASS3_CRT="✔" || \
-    VALID_CACERT_CLASS3_CRT="✘"
+    VALID_CACERT_CLASS3_CRT="✅" || \
+    VALID_CACERT_CLASS3_CRT="❌"
 
     openssl x509 \
         -noout \
         -checkend 0 <<<"${CRT}" >/dev/null 2>&1 && \
-    CRT_NOT_EXPIRED="✔" || \
-    CRT_NOT_EXPIRED="✘"
+    CRT_NOT_EXPIRED="✅" || \
+    CRT_NOT_EXPIRED="❌"
 
     openssl verify \
         -crl_check_all \
@@ -146,16 +146,16 @@ else
         -CRLfile <(echo "${CLASS1_CRL_PEM}") \
         -CRLfile <(echo "${CLASS3_CRL_PEM}") \
         <<<"${CRT}" >/dev/null 2>&1 && \
-    CRT_NOT_REVOKED_VIA_CRL="✔" || \
-    CRT_NOT_REVOKED_VIA_CRL="✘"
+    CRT_NOT_REVOKED_VIA_CRL="✅" || \
+    CRT_NOT_REVOKED_VIA_CRL="❌"
 
     openssl ocsp \
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -issuer <(echo "${CLASS3_ROOT_CRT}") \
         -cert <(echo "${CRT}") \
         -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
-    CRT_NOT_REVOKED_VIA_OCSP="✔" || \
-    CRT_NOT_REVOKED_VIA_OCSP="✘"
+    CRT_NOT_REVOKED_VIA_OCSP="✅" || \
+    CRT_NOT_REVOKED_VIA_OCSP="❌"
 
     for GPG_PUBKEY_SOURCE in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
         gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
@@ -172,10 +172,10 @@ else
             -content "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" \
             -inform pem >/dev/null 2>&1 && \
         cat "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" > "${GPG_PUBKEY}.asc" && \
-        GPG_PUBKEY_SMIME_VERIFIED="✔" && \
+        GPG_PUBKEY_SMIME_VERIFIED="✅" && \
         break
 
-        GPG_PUBKEY_SMIME_VERIFIED="✘"
+        GPG_PUBKEY_SMIME_VERIFIED="❌"
     done
 
     cat <<EOF
@@ -189,11 +189,11 @@ GnuPG public key:
   - "S/MIME signature verified" found: ${GPG_PUBKEY_SMIME_VERIFIED}
 EOF
 
-    if [ "${GPG_PUBKEY_SMIME_VERIFIED}" == "✔" ]; then
+    if [ "${GPG_PUBKEY_SMIME_VERIFIED}" == "✅" ]; then
         cat <<EOF
   - Fetched via: ${GPG_PUBKEY_SOURCE}
 
-GnuPG UID(s) (Matches S/MIME subject? ✔|✘):
+GnuPG UID(s) (Matches S/MIME subject? ✅|❌):
 EOF
 
         gpg \
@@ -204,9 +204,9 @@ EOF
         cut -d: -f10 | \
         while read -r GPG_UID; do
             if [ "${GPG_UID}" == "${CRT_NAME} <${CRT_MAIL}>" ]; then
-                echo "  ✔ ${GPG_UID}"
+                echo "  ✅ ${GPG_UID}"
             else
-                echo "  ✘ ${GPG_UID}"
+                echo "  ❌ ${GPG_UID}"
             fi
         done
 

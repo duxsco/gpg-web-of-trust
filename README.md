@@ -65,18 +65,18 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 $ bash s2g.sh pubkey.asc.pkcs7
 
 S/MIME signature's certificate (pubkey.asc.pkcs7):
-  - Valid CAcert class 3 certificate: ✔
-  - Not expired (until 05.01.2022): ✔
-  - Reported "not revoked" (CRL/OCSP): ✔/✔
+  - Valid CAcert class 3 certificate: ✅
+  - Not expired (until 05.01.2022): ✅
+  - Reported "not revoked" (CRL/OCSP): ✅/✅
 
 GnuPG public key:
-  - "S/MIME signature verified" found: ✔
+  - "S/MIME signature verified" found: ✅
   - Fetched via: DANE
 
-GnuPG UID(s) (Matches S/MIME subject? ✔|✘):
-  ✘ David Sardari <david.sardari@example.org>
-  ✔ David Sardari <david.sardari@example.de>
-  ✘ David Sardari <david.sardari@example.eu>
+GnuPG UID(s) (Matches S/MIME subject? ✅|❌):
+  ❌ David Sardari <david.sardari@example.org>
+  ✅ David Sardari <david.sardari@example.de>
+  ❌ David Sardari <david.sardari@example.eu>
 
 Feel free to import with:
   gpg --import "/tmp/tmp.rkEDaMITRr.asc"
