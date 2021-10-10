@@ -85,9 +85,11 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 "
 
 if [ "$(uname -s)" == "Darwin" ]; then
+    CURL="/usr/local/opt/curl/bin/curl"
     GREP="ggrep"
     OPENSSL="/usr/local/opt/openssl/bin/openssl"
 else
+    CURL="curl"
     GREP="grep"
     OPENSSL="openssl"
 fi
@@ -99,7 +101,7 @@ function getCRL() {
     # In case of tlsv1.3, we take every siphcer suite.
 
     echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}" | \
-    curl \
+    ${CURL} \
         --fail --silent --show-error --location \
         --cacert /dev/stdin \
         --tlsv1.2 \
