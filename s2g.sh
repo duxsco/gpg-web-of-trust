@@ -90,7 +90,7 @@ function getCRL() {
     #
     # In case of tlsv1.3, we take every siphcer suite.
 
-    echo "${CLASS1_ROOT_CRT}" | \
+    echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}" | \
     curl \
         --fail --silent --show-error \
         --cacert /dev/stdin \
