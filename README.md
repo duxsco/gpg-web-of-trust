@@ -4,7 +4,6 @@
 
 `s2g.sh` is still WIP. Currently, I cannot fully test the script:
 
-- I am currently trying to recover my old [CAcert](http://www.cacert.org) account using [Password Recovery with Assurance](http://wiki.cacert.org/FAQ/LostPasswordOrAccount#Password_Recovery_with_Assurance) in order to be able to get a class 3 S/MIME certificate issued again.
 - https://crl.cacert.org delivers an expired intermediate certificate ([see](https://www.ssllabs.com/ssltest/analyze.html?d=crl.cacert.org&latest)), or:
 
 ```bash
