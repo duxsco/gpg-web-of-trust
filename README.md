@@ -64,13 +64,13 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 ```
 $ bash s2g.sh pubkey.asc.pkcs7
 
-S/MIME signature (pubkey.asc.pkcs7):
-  - Valid CAcert class3 certificate: ✔
-  - Certificate not expired (until 05.01.2022): ✔
-  - Certificate not revoked (CRL/OCSP): ✔/✔
+S/MIME signature's certificate (pubkey.asc.pkcs7):
+  - Valid CAcert class 3 certificate: ✔
+  - Not expired (until 05.01.2022): ✔
+  - Reported "not revoked" (CRL/OCSP): ✔/✔
 
 GnuPG public key:
-  - Found one verified by S/MIME signature: ✔
+  - "S/MIME signature verified" found: ✔
   - Fetched via: DANE
 
 GnuPG UID(s) (Matches S/MIME subject? ✔|✘):
