@@ -86,10 +86,12 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 
 if [ "$(uname -s)" == "Darwin" ]; then
     CURL="/usr/local/opt/curl/bin/curl"
+    DATE="gdate"
     GREP="ggrep"
     OPENSSL="/usr/local/opt/openssl/bin/openssl"
 else
     CURL="curl"
+    DATE="date"
     GREP="grep"
     OPENSSL="openssl"
 fi
@@ -193,7 +195,7 @@ else
 
 S/MIME signature's certificate (${1##*/}):
   - Valid CAcert class 3 certificate: ${VALID_CACERT_CLASS3_CRT}
-  - Not expired (until $(date --date "$(${OPENSSL} x509 -noout -enddate <<<"${CRT}" | cut -d= -f2)" +"%x")): ${CRT_NOT_EXPIRED}
+  - Not expired (until $(${DATE} --date "$(${OPENSSL} x509 -noout -enddate <<<"${CRT}" | cut -d= -f2)" +"%x")): ${CRT_NOT_EXPIRED}
   - Reported "not revoked" (CRL/OCSP): ${CRT_NOT_REVOKED_VIA_CRL}/${CRT_NOT_REVOKED_VIA_OCSP}
 
 GnuPG public key:
