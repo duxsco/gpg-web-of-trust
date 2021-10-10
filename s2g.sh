@@ -86,8 +86,10 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 
 if [ "$(uname -s)" == "Darwin" ]; then
     GREP="ggrep"
+    OPENSSL="/usr/local/opt/openssl/bin/openssl"
 else
     GREP="grep"
+    OPENSSL="openssl"
 fi
 
 function getCRL() {
@@ -102,22 +104,22 @@ function getCRL() {
         --cacert /dev/stdin \
         --tlsv1.2 \
         --ciphers "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256" \
-        "$(openssl x509 -noout -ext crlDistributionPoints <<<"$1" | ${GREP} -Po 'URI:\K.*' | sed 's#http://#https://#')" | \
-    openssl crl -inform DER -outform PEM
+        "$(${OPENSSL} x509 -noout -ext crlDistributionPoints <<<"$1" | ${GREP} -Po 'URI:\K.*' | sed 's#http://#https://#')" | \
+    ${OPENSSL} crl -inform DER -outform PEM
 }
 
 function getCRTsubjectValue() {
-    openssl x509 \
+    ${OPENSSL} x509 \
         -noout \
         -subject \
         -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}" | \
     ${GREP} -Po "^[[:space:]]*$1=\K.*"
 }
 
-if [ ! -f "$1" ] || ! openssl pkcs7 -noout -in "$1"; then
+if [ ! -f "$1" ] || ! ${OPENSSL} pkcs7 -noout -in "$1"; then
     echo -e "\nNo PKCS #7 file provided, e.g. \"bash ${0##*/} pubkey.asc.pkcs7\". Aborting...\n"
 else
-    CRT="$(openssl pkcs7 -print_certs -in "$1" | openssl x509)"
+    CRT="$(${OPENSSL} pkcs7 -print_certs -in "$1" | ${OPENSSL} x509)"
     CRT_NAME="$(getCRTsubjectValue "commonName")"
     CRT_MAIL="$(getCRTsubjectValue "emailAddress")"
 
@@ -132,20 +134,20 @@ else
     PKA="PKA" || \
     PKA=""
 
-    openssl verify \
+    ${OPENSSL} verify \
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -untrusted <(echo "${CLASS3_ROOT_CRT}") \
         <<<"${CRT}" >/dev/null 2>&1 && \
     VALID_CACERT_CLASS3_CRT="✅" || \
     VALID_CACERT_CLASS3_CRT="❌"
 
-    openssl x509 \
+    ${OPENSSL} x509 \
         -noout \
         -checkend 0 <<<"${CRT}" >/dev/null 2>&1 && \
     CRT_NOT_EXPIRED="✅" || \
     CRT_NOT_EXPIRED="❌"
 
-    openssl verify \
+    ${OPENSSL} verify \
         -crl_check_all \
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -untrusted <(echo "${CLASS3_ROOT_CRT}") \
@@ -155,11 +157,11 @@ else
     CRT_NOT_REVOKED_VIA_CRL="✅" || \
     CRT_NOT_REVOKED_VIA_CRL="❌"
 
-    openssl ocsp \
+    ${OPENSSL} ocsp \
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -issuer <(echo "${CLASS3_ROOT_CRT}") \
         -cert <(echo "${CRT}") \
-        -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
+        -url "$(${OPENSSL} x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
     CRT_NOT_REVOKED_VIA_OCSP="✅" || \
     CRT_NOT_REVOKED_VIA_OCSP="❌"
 
@@ -172,7 +174,7 @@ else
             --armor \
             --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" 2>/dev/null && \
         echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}" | \
-        openssl smime \
+        ${OPENSSL} smime \
             -CAfile /dev/stdin \
             -verify \
             -in "$1" \
@@ -189,7 +191,7 @@ else
 
 S/MIME signature's certificate (${1##*/}):
   - Valid CAcert class 3 certificate: ${VALID_CACERT_CLASS3_CRT}
-  - Not expired (until $(date --date "$(openssl x509 -noout -enddate <<<"${CRT}" | cut -d= -f2)" +"%x")): ${CRT_NOT_EXPIRED}
+  - Not expired (until $(date --date "$(${OPENSSL} x509 -noout -enddate <<<"${CRT}" | cut -d= -f2)" +"%x")): ${CRT_NOT_EXPIRED}
   - Reported "not revoked" (CRL/OCSP): ${CRT_NOT_REVOKED_VIA_CRL}/${CRT_NOT_REVOKED_VIA_OCSP}
 
 GnuPG public key:
