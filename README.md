@@ -58,7 +58,7 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 1. Making sure that public keys are published without later modifications for signature verification to succeed
 2. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
 3. Creation and publication of a detached S/MIME signature for your GnuPG public key
-4. Retrieval and signature verification by your communication partner:
+4. GnuPG public key retrieval and signature verification by your communication partner:
 
 ```
 $ bash s2g.sh pubkey.asc.pkcs7
@@ -142,7 +142,7 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 
 I refrain from using GnuPG's Web of Trust approach. Thus, I am doing a minimal export of my public key excluding all signatures except the most recent self-signature on each user ID.
 
-1. Export your GnuPG public key:
+1. This step can be skipped if you followed the instructions under [caption 1](#1-make-sure-that-public-keys-are-published-without-later-modifications) (recommended). Export your GnuPG public key:
 
 ```bash
 gpg --export-options export-minimal --armor --export "YOUR KEY ID" > pubkey.asc
@@ -193,7 +193,7 @@ cat s2g.sh | awk -F'\n' '
 
 And, compare them with the hashes published by the CAcert ([HTTP](http://www.cacert.org/index.php?id=3) or [HTTPS](https://www.cacert.org/index.php?id=3)).
 
-To verify and import your communication partner's GnuPG public key do:
+To verify your communication partner's GnuPG public key do:
 
 ```bash
 # Follow the output as you see fit
