@@ -134,9 +134,7 @@ openssl req -new -sha256 -key smime.key -subj "/" -out smime.csr
 
 ![certificate request](assets/certificate_request.png)
 
-3. Download your certificate:
-
-![certificate download](assets/certificate_download.png)
+3. Download your certificate in PEM format and save as `smime.crt`
 
 ## 3. GnuPG public key signing with S/MIME
 
