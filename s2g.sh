@@ -213,7 +213,7 @@ EOF
 
         cat <<EOF
 
-Feel free to import with:
+Feel free to import the GnuPG public key:
   gpg --import "${GPG_PUBKEY}.asc"
 
 EOF
@@ -221,3 +221,5 @@ EOF
         echo ""
     fi
 fi
+
+gpgconf --homedir "${TMP_GPG_HOMEDIR}" --kill all
