@@ -158,7 +158,6 @@ else
     CRT_NOT_REVOKED_VIA_OCSP="✘"
 
     for GPG_PUBKEY_SOURCE in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
-        # shellcheck disable=SC2015
         gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
             --auto-key-locate "clear,${GPG_PUBKEY_SOURCE}" \
             --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
@@ -174,7 +173,8 @@ else
             -inform pem >/dev/null 2>&1 && \
         cat "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" > "${GPG_PUBKEY}.asc" && \
         GPG_PUBKEY_SMIME_VERIFIED="✔" && \
-        break || \
+        break
+
         GPG_PUBKEY_SMIME_VERIFIED="✘"
     done
 
