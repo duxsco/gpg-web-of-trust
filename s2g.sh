@@ -165,8 +165,9 @@ else
             --export-options export-minimal \
             --armor \
             --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" 2>/dev/null && \
+        echo -e "${CLASS3_ROOT_CRT}\n${CLASS1_ROOT_CRT}" | \
         openssl smime \
-            -CAfile <<<"${CLASS3_ROOT_CRT}" \
+            -CAfile /dev/stdin \
             -verify \
             -in "$1" \
             -content "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" \
