@@ -94,7 +94,7 @@ function getCRL() {
     curl \
         --fail --silent --show-error --location \
         --cacert /dev/stdin \
-        --cert-status --tlsv1.2 \
+        --tlsv1.2 \
         --ciphers "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256" \
         "$(openssl x509 -noout -ext crlDistributionPoints <<<"$1" | grep -Po 'URI:\K.*' | sed 's#http://#https://#')" | \
     openssl crl -inform DER -outform PEM
