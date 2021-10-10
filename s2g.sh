@@ -87,11 +87,15 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 if [ "$(uname -s)" == "Darwin" ]; then
     CURL="/usr/local/opt/curl/bin/curl"
     DATE="gdate"
+    GPG="/usr/local/opt/gnupg@2.2/bin/gpg"
+    GPGCONF="/usr/local/opt/gnupg@2.2/bin/gpgconf"
     GREP="ggrep"
     OPENSSL="/usr/local/opt/openssl/bin/openssl"
 else
     CURL="curl"
     DATE="date"
+    GPG="gpg"
+    GPGCONF="gpgconf"
     GREP="grep"
     OPENSSL="openssl"
 fi
@@ -134,7 +138,7 @@ else
     GPG_PUBKEY="$(mktemp)"
     mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
 
-    ${GREP} -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version) && \
+    ${GREP} -q '^gpg (GnuPG) 2\.2\.' < <(${GPG} --homedir "${TMP_GPG_HOMEDIR}" --version) && \
     PKA="PKA" || \
     PKA=""
 
@@ -170,10 +174,10 @@ else
     CRT_NOT_REVOKED_VIA_OCSP="❌"
 
     for GPG_PUBKEY_SOURCE in "DANE" "WKD" ${PKA} "CERT" "hkps://keys.openpgp.org" "hkps://keys.mailvelope.com" "hkps://keys.gentoo.org" "hkps://keyserver.ubuntu.com"; do
-        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
+        ${GPG} --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
             --auto-key-locate "clear,${GPG_PUBKEY_SOURCE}" \
             --locate-external-key "${CRT_MAIL}" >/dev/null 2>&1 && \
-        gpg --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
+        ${GPG} --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
             --export-options export-minimal \
             --armor \
             --export "${CRT_MAIL}" > "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.asc" 2>/dev/null && \
@@ -209,7 +213,7 @@ EOF
 GnuPG UID(s) (Matches S/MIME subject? ✅|❌):
 EOF
 
-        gpg \
+        ${GPG} \
             --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
             --with-colons \
             --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
@@ -226,7 +230,7 @@ EOF
         cat <<EOF
 
 Feel free to import the GnuPG public key:
-  gpg --import "${GPG_PUBKEY}.asc"
+  ${GPG##*/} --import "${GPG_PUBKEY}.asc"
 
 EOF
     else
@@ -234,4 +238,4 @@ EOF
     fi
 fi
 
-gpgconf --homedir "${TMP_GPG_HOMEDIR}" --kill all
+${GPGCONF} --homedir "${TMP_GPG_HOMEDIR}" --kill all
