@@ -1,4 +1,4 @@
-# (WIP) GnuPG Web of Trust (WIP)
+# GnuPG Web of Trust
 
 ## Introduction
 
@@ -7,27 +7,31 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 1. Making sure that public keys are published without later modifications for signature verification to succeed
 2. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
 3. Creation and publication of a detached S/MIME signature for your GnuPG public key
-4. GnuPG public key retrieval and signature verification by your communication partner:
+4. GnuPG public key retrieval and signature verification by your communication partner. You can try this out yourself with my S/MIME signature file provided in this repo:
 
 ```
-$ bash s2g.sh pubkey.asc.pkcs7
+$ bash s2g.sh assets/pubkey.asc.pkcs7
 
 S/MIME signature's certificate (pubkey.asc.pkcs7):
   - Valid CAcert class 3 certificate: ✅
-  - Not expired (until 01/05/2022): ✅
-  - Reported "not revoked" (CRL/OCSP): ❌/✅
+  - Not expired (until 10/10/2023): ✅
+  - Reported "not revoked" (CRL/OCSP): ✅/✅
 
 GnuPG public key:
   - "S/MIME signature verified" found: ✅
   - Fetched via: DANE
 
 GnuPG UID(s) (Matches S/MIME subject? ✅|❌):
-  ❌ David Sardari <david.sardari@example.org>
-  ✅ David Sardari <david.sardari@example.de>
-  ❌ David Sardari <david.sardari@example.eu>
+  ✅ David Sardari <MASKED>
 
-Feel free to import with:
-  gpg --import "/tmp/tmp.rkEDaMITRr.asc"
+Feel free to import the GnuPG public key:
+  gpg --import "/tmp/tmp.K9siVmR1vZ.asc"
+
+$ gpg --import "/tmp/tmp.K9siVmR1vZ.asc"
+gpg: /home/david/.gnupg/trustdb.gpg: trustdb created
+gpg: key 11BE5F68440E0758: public key "David Sardari <MASKED>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
 
 ```
 
