@@ -55,7 +55,7 @@ I already notified CAcert support of the last two problems and awaiting a respon
 
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background information"](#background-information). This new approach consist of:
 
-1. Make sure that public keys are published without later modifications for signature verification to succeed
+1. Making sure that public keys are published without later modifications for signature verification to succeed
 2. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
 3. Creation and publication of a detached S/MIME signature for your GnuPG public key
 4. Retrieval and signature verification by your communication partner:
