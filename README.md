@@ -66,7 +66,7 @@ $ bash s2g.sh pubkey.asc.pkcs7
 
 S/MIME signature (pubkey.asc.pkcs7):
   - Valid CAcert class3 certificate: ✔
-  - Certificate not expired: ✔
+  - Certificate not expired (until 05.01.2022): ✔
   - Certificate not revoked (CRL/OCSP): ✔/✔
 
 GnuPG public key:
