@@ -84,6 +84,12 @@ cSvOK6eB1kdGKLA8ymXxZp8=
 -----END CERTIFICATE-----
 "
 
+if [ "$(uname -s)" == "Darwin" ]; then
+    GREP="ggrep"
+else
+    GREP="grep"
+fi
+
 function getCRL() {
     # Certificate suite list created with:
     # openssl ciphers -v -s | grep AEAD | grep ECDHE | awk '{print $1}' | paste -d: -s -
@@ -96,7 +102,7 @@ function getCRL() {
         --cacert /dev/stdin \
         --tlsv1.2 \
         --ciphers "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256" \
-        "$(openssl x509 -noout -ext crlDistributionPoints <<<"$1" | grep -Po 'URI:\K.*' | sed 's#http://#https://#')" | \
+        "$(openssl x509 -noout -ext crlDistributionPoints <<<"$1" | ${GREP} -Po 'URI:\K.*' | sed 's#http://#https://#')" | \
     openssl crl -inform DER -outform PEM
 }
 
@@ -105,7 +111,7 @@ function getCRTsubjectValue() {
         -noout \
         -subject \
         -nameopt esc_ctrl,esc_msb,sep_multiline,lname <<<"${CRT}" | \
-    grep -Po "^[[:space:]]*$1=\K.*"
+    ${GREP} -Po "^[[:space:]]*$1=\K.*"
 }
 
 if [ ! -f "$1" ] || ! openssl pkcs7 -noout -in "$1"; then
@@ -122,7 +128,7 @@ else
     GPG_PUBKEY="$(mktemp)"
     mv "${GPG_PUBKEY}" "${GPG_PUBKEY}.asc"
 
-    grep -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version) && \
+    ${GREP} -q '^gpg (GnuPG) 2\.2\.' < <(gpg --homedir "${TMP_GPG_HOMEDIR}" --version) && \
     PKA="PKA" || \
     PKA=""
 
@@ -201,7 +207,7 @@ EOF
             --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
             --with-colons \
             --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
-        grep "^uid" | \
+        ${GREP} "^uid" | \
         cut -d: -f10 | \
         while read -r GPG_UID; do
             if [ "${GPG_UID}" == "${CRT_NAME} <${CRT_MAIL}>" ]; then
