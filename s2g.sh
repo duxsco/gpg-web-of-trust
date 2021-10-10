@@ -183,7 +183,7 @@ else
 
 S/MIME signature's certificate (${1##*/}):
   - Valid CAcert class 3 certificate: ${VALID_CACERT_CLASS3_CRT}
-  - Not expired (until $(date --date "$(openssl x509 -noout -enddate <<<${CRT} | cut -d= -f2)" +"%x")): ${CRT_NOT_EXPIRED}
+  - Not expired (until $(date --date "$(openssl x509 -noout -enddate <<<"${CRT}" | cut -d= -f2)" +"%x")): ${CRT_NOT_EXPIRED}
   - Reported "not revoked" (CRL/OCSP): ${CRT_NOT_REVOKED_VIA_CRL}/${CRT_NOT_REVOKED_VIA_OCSP}
 
 GnuPG public key:
