@@ -153,11 +153,7 @@ else
         -CAfile <(echo "${CLASS1_ROOT_CRT}") \
         -issuer <(echo "${CLASS3_ROOT_CRT}") \
         -cert <(echo "${CRT}") \
-        -url "$(
-            openssl x509 \
-                -noout \
-                -ocsp_uri <<<"${CRT}" | \
-            sed 's#^http://#https://#')" >/dev/null 2>&1 && \
+        -url "$(openssl x509 -noout -ocsp_uri <<<"${CRT}" | sed 's#^http://#https://#')" >/dev/null 2>&1 && \
     CRT_NOT_REVOKED_VIA_OCSP="✔" || \
     CRT_NOT_REVOKED_VIA_OCSP="✘"
 
