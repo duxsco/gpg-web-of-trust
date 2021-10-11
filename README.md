@@ -1,4 +1,4 @@
-# (WIP) GnuPG Web of Trust (WIP)
+# GnuPG Web of Trust
 
 ## Introduction
 
