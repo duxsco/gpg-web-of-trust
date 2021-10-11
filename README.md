@@ -37,7 +37,7 @@ gpg:               imported: 1
 
 ## System requirements
 
-`s2g.sh` has been tested on Gentoo Linux and macOS Catalina, both with GnuPG v2.2.x. For `s2g.sh` to function on macOS, you need to install certain [HomeBrew](https://brew.sh/) packages:
+`s2g.sh` has been tested on Gentoo Linux and macOS Catalina, both with **GnuPG v2.2.x**. For `s2g.sh` to function on macOS, you need to install certain [HomeBrew](https://brew.sh/) packages:
 
 ```bash
 brew install bash coreutils curl gnupg@2.2 grep openssl@1.1
