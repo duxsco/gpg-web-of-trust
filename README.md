@@ -7,7 +7,7 @@ The following outlines a "new" way to realise Web of Trust for GnuPG. The limita
 1. Making sure that public keys are published without later modifications for signature verification to succeed
 2. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
 3. Creation and publication of a detached S/MIME signature for your GnuPG public key
-4. GnuPG public key retrieval and signature verification by your communication partner. You can try this out yourself with my S/MIME signature file provided in this repo:
+4. GnuPG public key retrieval and signature verification by your communication partner. After taking care of the [system requirements](#system-requirements), you can try this out yourself with `assets/pubkey.asc.pkcs7` provided in this repo:
 
 ```
 $ bash s2g.sh assets/pubkey.asc.pkcs7
@@ -33,6 +33,14 @@ gpg: key 11BE5F68440E0758: public key "David Sardari <MASKED>" imported
 gpg: Total number processed: 1
 gpg:               imported: 1
 
+```
+
+## System requirements
+
+`s2g.sh` has been tested on Gentoo Linux and macOS Catalina. For `s2g.sh` to function on macOS, you need to install certain [HomeBrew](https://brew.sh/) packages:
+
+```bash
+brew install bash coreutils curl gnupg@2.2 grep openssl@1.1
 ```
 
 ## 1. Make sure that public keys are published without later modifications
