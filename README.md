@@ -5,9 +5,9 @@
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background information"](#background-information). This new approach consist of:
 
 1. Making sure that public keys are published without later modifications for signature verification to succeed
-2. Creation of a class 3 S/MIME key pair issued by [CAcert](http://www.cacert.org)
+2. Creation of a class 3 S/MIME key pair with the certificate issued by [CAcert](http://www.cacert.org)
 3. Creation and publication of a detached S/MIME signature for your GnuPG public key
-4. GnuPG public key retrieval and signature verification by your communication partner. After taking care of the [system requirements](#system-requirements), you can try this out yourself with `assets/pubkey.asc.pkcs7` provided in this repo:
+4. GnuPG public key retrieval and signature verification by your communication partner. After taking care of the [system requirements](#system-requirements), you can try this out yourself with [assets/pubkey.asc.pkcs7](assets/pubkey.asc.pkcs7):
 
 ```
 $ bash s2g.sh assets/pubkey.asc.pkcs7
