@@ -171,3 +171,7 @@ GnuPG's Web of Trust approach is long dead due to:
 - and finally privacy concerns due to [GDPR](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation):
 
 ![sks keyserver notification](assets/sks_keyserver_notification.png)
+
+## Other GnuPG repos
+
+https://github.com/duxco?tab=repositories&q=gpg-
