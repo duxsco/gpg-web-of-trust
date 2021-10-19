@@ -174,4 +174,4 @@ GnuPG's Web of Trust approach is long dead due to:
 
 ## Other GnuPG repos
 
-https://github.com/duxco?tab=repositories&q=gpg-
+https://github.com/duxsco?tab=repositories&q=gpg-
