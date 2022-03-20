@@ -2,6 +2,8 @@
 
 ## Introduction
 
+> ⚠️ There is some work on [attested certifications](https://gitlab.com/openpgp-wg/rfc4880bis/-/merge_requests/20/diffs) which might lead to a revival of GnuPG Web of Trust. ⚠️
+
 The following outlines a "new" way to realise Web of Trust for GnuPG. The limitations of traditional Web of Trust is described under ["Background information"](#background-information). This new approach consist of:
 
 1. Making sure that public keys are published without later modifications for signature verification to succeed
