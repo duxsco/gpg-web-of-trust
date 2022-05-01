@@ -213,19 +213,20 @@ EOF
 GnuPG UID(s) (Matches S/MIME subject? ✅|❌):
 EOF
 
-        ${GPG} \
-            --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
-            --with-colons \
-            --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
-        ${GREP} "^uid" | \
-        cut -d: -f10 | \
         while read -r GPG_UID; do
             if [ "${GPG_UID}" == "${CRT_NAME} <${CRT_MAIL}>" ]; then
                 echo "  ✅ ${GPG_UID}"
             else
                 echo "  ❌ ${GPG_UID}"
             fi
-        done
+        done < <(
+            ${GPG} \
+                --homedir "${TMP_GPG_HOMEDIR}" --no-default-keyring --keyring "${TMP_GPG_HOMEDIR}/${GPG_PUBKEY_SOURCE#*://}.gpg" \
+                --with-colons \
+                --show-keys "${GPG_PUBKEY}.asc" 2>/dev/null | \
+            ${GREP} "^uid" | \
+            cut -d: -f10
+        )
 
         cat <<EOF
 
